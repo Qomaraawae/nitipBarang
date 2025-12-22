@@ -58,7 +58,7 @@ export default function Dashboard() {
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 truncate">Penitipan Barang</h1>
                 <div className="flex items-center space-x-2">
                   <p className="text-xs sm:text-sm text-gray-500 truncate">
-                    {isAdmin ? "Dashboard Admin" : "Dashboard User"}
+                    {isAdmin ? "Dashboard" : "Dashboard"}
                   </p>
                   <span className={`px-2 py-0.5 text-xs font-semibold rounded-full flex-shrink-0 ${
                     isAdmin 

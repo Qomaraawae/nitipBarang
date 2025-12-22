@@ -10,32 +10,42 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+interface Barang {
+  id: string;
+  kode_ambil: string;
+  nama_pemilik: string;
+  no_hp: string;
+  slot: string | number;
+  foto_url?: string;
+  status: string;
+  waktu_masuk?: { toDate: () => Date };
+}
+
 export default function DetailBarang({ params }: PageProps) {
-  const [barang, setBarang] = useState<any>(null);
+  const [barang, setBarang] = useState<Barang | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showCopyNotif, setShowCopyNotif] = useState(false); // ✅ State untuk notifikasi
+  const [showCopyNotif, setShowCopyNotif] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
     async function fetchData() {
       try {
         const { id } = await params;
-        console.log("🔍 Mencari barang dengan kode_ambil:", id);
         
         const q = query(collection(db, "barang"), where("kode_ambil", "==", id));
         const querySnapshot = await getDocs(q);
         
         if (querySnapshot.empty) {
-          console.log("❌ Tidak ada barang dengan kode_ambil:", id);
           notFound();
           return;
         }
 
         const doc = querySnapshot.docs[0];
-        const data = { id: doc.id, ...doc.data() };
-        console.log("✅ Barang ditemukan:", data);
+        const data = { id: doc.id, ...doc.data() } as Barang;
         setBarang(data);
       } catch (error) {
-        console.error("❌ Error saat mengambil data:", error);
+        console.error("Error saat mengambil data:", error);
         notFound();
       } finally {
         setLoading(false);
@@ -45,13 +55,11 @@ export default function DetailBarang({ params }: PageProps) {
     fetchData();
   }, [params]);
 
-  // ✅ Function untuk copy kode dengan notifikasi
   const handleCopyKode = async () => {
     try {
-      await navigator.clipboard.writeText(barang.kode_ambil);
+      await navigator.clipboard.writeText(barang!.kode_ambil);
       setShowCopyNotif(true);
       
-      // Auto hide after 3 seconds
       setTimeout(() => {
         setShowCopyNotif(false);
       }, 3000);
@@ -60,6 +68,59 @@ export default function DetailBarang({ params }: PageProps) {
       alert('Gagal menyalin kode');
     }
   };
+
+  const openImageModal = () => {
+    setShowImageModal(true);
+    setZoomLevel(1);
+  };
+
+  const closeImageModal = () => {
+    setShowImageModal(false);
+    setZoomLevel(1);
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.5, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.5, 1));
+  };
+
+  useEffect(() => {
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showImageModal) {
+        closeImageModal();
+      }
+    };
+
+    const handleKeyZoom = (e: KeyboardEvent) => {
+      if (!showImageModal) return;
+      
+      if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        handleZoomIn();
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        handleZoomOut();
+      } else if (e.key === '0') {
+        e.preventDefault();
+        setZoomLevel(1);
+      }
+    };
+
+    if (showImageModal) {
+      document.addEventListener('keydown', handleEscapeKey);
+      document.addEventListener('keydown', handleKeyZoom);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+      document.removeEventListener('keydown', handleKeyZoom);
+      document.body.style.overflow = 'auto';
+    };
+  }, [showImageModal]);
 
   if (loading) {
     return (
@@ -77,7 +138,6 @@ export default function DetailBarang({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <a 
             href="/"
@@ -102,9 +162,7 @@ export default function DetailBarang({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Content Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          {/* Status Badge */}
           <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-8 py-4">
             <div className="flex items-center justify-between">
               <span className="text-white font-semibold">Status</span>
@@ -120,7 +178,6 @@ export default function DetailBarang({ params }: PageProps) {
 
           <div className="p-8">
             <div className="grid md:grid-cols-2 gap-8">
-              {/* Info Section */}
               <div className="space-y-6">
                 <div>
                   <label className="text-sm font-medium text-gray-500 mb-2 block">Kode Ambil</label>
@@ -186,17 +243,30 @@ export default function DetailBarang({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Photo Section */}
               <div>
                 <label className="text-sm font-medium text-gray-500 mb-2 block">Foto Barang</label>
                 {barang.foto_url ? (
-                  <div className="relative rounded-xl overflow-hidden shadow-lg border-2 border-gray-200 aspect-square">
+                  <div className="group relative rounded-xl overflow-hidden shadow-lg border-2 border-gray-200 aspect-square">
+                    <button
+                      onClick={openImageModal}
+                      className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300 z-10 cursor-zoom-in"
+                      aria-label="Preview foto barang"
+                    >
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                          <svg className="w-8 h-8 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </button>
                     <Image
                       src={barang.foto_url}
                       alt="Foto barang"
                       fill
-                      className="object-cover"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                       sizes="(max-width: 768px) 100vw, 50vw"
+                      priority
                     />
                   </div>
                 ) : (
@@ -214,7 +284,6 @@ export default function DetailBarang({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Action Buttons */}
         {barang.status === 'dititipkan' && (
           <div className="mt-6">
             <a
@@ -250,7 +319,88 @@ Cek detail: ${typeof window !== 'undefined' ? window.location.href : ''}`
           </div>
         )}
 
-        {/* ✅ Toast Notification - Copy Success */}
+        {showImageModal && barang.foto_url && (
+          <div className="fixed inset-0 z-50">
+            <div 
+              className="absolute inset-0 bg-black/95 backdrop-blur-sm animate-fadeIn"
+              onClick={closeImageModal}
+            ></div>
+            
+            <div className="relative h-full flex items-center justify-center p-4">
+              <button
+                onClick={closeImageModal}
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full transition-all duration-300 hover:scale-110"
+                aria-label="Tutup preview"
+              >
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="relative w-full max-w-6xl max-h-[90vh] animate-scaleIn overflow-hidden rounded-xl">
+                <div className="relative w-full h-full flex items-center justify-center bg-black">
+                  <img
+                    src={barang.foto_url}
+                    alt="Preview foto barang"
+                    className="max-w-full max-h-full object-contain"
+                    style={{
+                      transform: `scale(${zoomLevel})`,
+                      transition: 'transform 0.2s ease',
+                    }}
+                  />
+                </div>
+                
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 sm:p-6">
+                  <p className="text-white font-medium text-sm sm:text-base">
+                    Foto barang milik: <span className="font-bold">{barang.nama_pemilik}</span>
+                  </p>
+                  <p className="text-gray-300 text-xs sm:text-sm mt-1">
+                    Slot: {barang.slot} • Kode: {barang.kode_ambil}
+                  </p>
+                </div>
+
+                <div className="absolute bottom-4 right-4 flex items-center space-x-2 bg-black/50 backdrop-blur-sm rounded-lg p-1">
+                  <button
+                    className="p-2 hover:bg-white/20 rounded-lg transition-all duration-300 disabled:opacity-30"
+                    onClick={handleZoomOut}
+                    disabled={zoomLevel <= 1}
+                    aria-label="Zoom out"
+                  >
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                    </svg>
+                  </button>
+                  
+                  <span className="px-2 text-white text-sm font-medium min-w-[60px] text-center">
+                    {Math.round(zoomLevel * 100)}%
+                  </span>
+                  
+                  <button
+                    className="p-2 hover:bg-white/20 rounded-lg transition-all duration-300 disabled:opacity-30"
+                    onClick={handleZoomIn}
+                    disabled={zoomLevel >= 3}
+                    aria-label="Zoom in"
+                  >
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                  </button>
+                  
+                  {zoomLevel > 1 && (
+                    <button
+                      className="ml-2 px-3 py-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded text-white text-sm font-medium transition-all duration-300"
+                      onClick={() => setZoomLevel(1)}
+                      aria-label="Reset zoom"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showCopyNotif && (
           <div className="fixed top-4 right-4 z-50 animate-slideInRight">
             <div className="bg-white rounded-xl shadow-2xl border border-green-200 overflow-hidden max-w-sm">
@@ -275,7 +425,6 @@ Cek detail: ${typeof window !== 'undefined' ? window.location.href : ''}`
                   </svg>
                 </button>
               </div>
-              {/* Progress bar */}
               <div className="h-1 bg-gray-100">
                 <div className="h-full bg-green-500 animate-shrink" style={{ animationDuration: '3s' }}></div>
               </div>
@@ -284,7 +433,6 @@ Cek detail: ${typeof window !== 'undefined' ? window.location.href : ''}`
         )}
       </div>
 
-      {/* ✅ Add animation styles */}
       <style jsx>{`
         @keyframes slideInRight {
           from {
@@ -306,12 +454,40 @@ Cek detail: ${typeof window !== 'undefined' ? window.location.href : ''}`
           }
         }
         
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
+        @keyframes scaleIn {
+          from {
+            transform: scale(0.9);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        
         .animate-slideInRight {
           animation: slideInRight 0.3s ease-out;
         }
         
         .animate-shrink {
           animation: shrink 3s linear;
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out;
+        }
+        
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out;
         }
       `}</style>
     </div>
