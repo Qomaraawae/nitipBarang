@@ -147,7 +147,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex-1">
                   <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
-                    Hai {getUserName()}, selamat datang di Nitip Barang 👋
+                    Hai {getUserName()}, selamat datang di Nitip Barang! 👋
                   </h2>
                   <p className="text-lg text-gray-600 leading-relaxed">
                     Anda bisa menitipkan barang dengan menekan tombol <span className="font-bold text-blue-600">"Titip Barang"</span> di bawah ini.

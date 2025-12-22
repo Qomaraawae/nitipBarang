@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext"; // ✅ TAMBAHKAN INI
 import { barangCollection } from "@/lib/firebase/firestore";
 import { addDoc, serverTimestamp } from "firebase/firestore";
 import { generateKodeAmbil } from "@/lib/utils";
@@ -9,6 +10,7 @@ import Link from "next/link";
 import { useSlotAvailability } from "@/hooks/useSlotAvailability";
 
 export default function TitipPage() {
+  const { user } = useAuth(); // ✅ TAMBAHKAN INI - Ambil user dari context
   const [nama, setNama] = useState("");
   const [hp, setHp] = useState("");
   const [slot, setSlot] = useState<number | null>(null);
@@ -19,14 +21,52 @@ export default function TitipPage() {
   const router = useRouter();
   const { occupiedSlots, loading: slotsLoading } = useSlotAvailability();
 
+  const validateInput = () => {
+    // Nama validation
+    if (!nama || nama.trim().length < 2) {
+      alert("Nama minimal 2 karakter");
+      return false;
+    }
+    
+    // Phone validation
+    const phoneRegex = /^(\+?62|0)[0-9]{9,12}$/;
+    if (!hp || !phoneRegex.test(hp.replace(/\s/g, ''))) {
+      alert("Nomor HP tidak valid (contoh: 081234567890)");
+      return false;
+    }
+    
+    // Slot validation
+    if (!slot || slot < 1 || slot > 50) {
+      alert("Pilih slot yang valid (1-50)");
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nama || !hp || !slot) return alert("Lengkapi data dan pilih slot");
+    
+    // ✅ VALIDASI: Pastikan user sudah login
+    if (!user) {
+      alert("Anda harus login terlebih dahulu!");
+      router.push("/login");
+      return;
+    }
+    
+    if (!validateInput()) return;
+
+    // Guard clause: slot is guaranteed to be a number here
+    if (slot === null) {
+      alert("Pilih slot terlebih dahulu");
+      return;
+    }
 
     setLoading(true);
-    const kode = generateKodeAmbil();
+    const kode = await generateKodeAmbil();
 
     try {
+      // ✅ PENTING: Tambahkan user_id dan created_by_email
       await addDoc(barangCollection, {
         nama_pemilik: nama,
         no_hp: hp,
@@ -36,6 +76,10 @@ export default function TitipPage() {
         status: "dititipkan" as const,
         kode_ambil: kode,
         created_at: serverTimestamp(),
+        
+        // ✅ WAJIB: Field untuk role system
+        user_id: user.uid,                    // UID user yang menitipkan
+        created_by_email: user.email || "",   // Email user (optional)
       });
 
       const linkDetail = `${window.location.origin}/barang/${kode}`;
@@ -63,7 +107,7 @@ Cek detail: ${linkDetail}`
       }, 5000);
     } catch (err) {
       console.error("Error saving:", err);
-      alert("Gagal simpan");
+      alert("Gagal simpan: " + (err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -349,11 +393,10 @@ Cek detail: ${linkDetail}`
         </div>
       </div>
 
-      {/* Success Notification Modal dengan Tombol Close */}
+      {/* Success Notification Modal */}
       {showSuccessNotif && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-scaleIn">
-            {/* Header dengan tombol close */}
             <div className="relative bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-6">
               <button
                 onClick={handleCloseNotification}

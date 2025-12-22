@@ -1,23 +1,47 @@
-import { Barang } from "@/lib/types";
+import { Barang } from "@/types/barang"; // ✅ Fixed import path
 
-const TOTAL_SLOT = 30;
+interface SlotGridProps {
+  barang: (Barang & { id: string })[];
+  onSlotClick?: (slot: number) => void;
+  selectedSlot?: number;
+  maxSlots?: number;
+}
 
-export default function SlotGrid({ barangAktif }: { barangAktif: Barang[] }) {
-  const slotTerisi = barangAktif.map((b) => b.slot);
+export default function SlotGrid({ 
+  barang, 
+  onSlotClick, 
+  selectedSlot,
+  maxSlots = 50 
+}: SlotGridProps) {
+  const slots = Array.from({ length: maxSlots }, (_, i) => i + 1);
+  
+  const isSlotOccupied = (slotNumber: number) => {
+    return barang.some(b => b.slot === slotNumber);
+  };
 
   return (
-    <div className="grid grid-cols-6 gap-3">
-      {Array.from({ length: TOTAL_SLOT }, (_, i) => i + 1).map((slot) => {
-        const terisi = slotTerisi.includes(slot);
+    <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
+      {slots.map((slot) => {
+        const occupied = isSlotOccupied(slot);
+        const isSelected = selectedSlot === slot;
+        
         return (
-          <div
+          <button
             key={slot}
-            className={`w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl ${
-              terisi ? "bg-red-600" : "bg-green-600"
-            }`}
+            onClick={() => !occupied && onSlotClick?.(slot)}
+            disabled={occupied}
+            className={`
+              aspect-square rounded-lg font-bold text-lg transition-all duration-200
+              ${occupied 
+                ? 'bg-red-100 text-red-400 cursor-not-allowed border-2 border-red-200' 
+                : isSelected
+                  ? 'bg-green-500 text-white shadow-lg scale-110 border-2 border-green-600'
+                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-105 border-2 border-blue-200'
+              }
+            `}
           >
             {slot}
-          </div>
+          </button>
         );
       })}
     </div>

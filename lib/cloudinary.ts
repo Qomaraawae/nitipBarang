@@ -21,13 +21,12 @@ export async function uploadToCloudinary(file: File): Promise<string> {
   // Siapkan form data
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", "penitipan_barang"); // Sesuaikan dengan preset Anda
+  formData.append("upload_preset", "penitipan_barang");
 
   console.log("Uploading to Cloudinary...", { cloudName });
 
   try {
-    // Upload ke Cloudinary
-    const res = await fetch(
+    const response = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       {
         method: "POST",
@@ -35,18 +34,18 @@ export async function uploadToCloudinary(file: File): Promise<string> {
       }
     );
 
-    const data = await res.json();
-    
-    // Cek response
-    if (!res.ok) {
-      console.error("Cloudinary error:", data);
-      throw new Error(data.error?.message || "Upload gagal");
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Cloudinary upload error:", errorData);
+      throw new Error(`Upload failed: ${errorData.error?.message || "Unknown error"}`);
     }
+
+    const data = await response.json();
+    console.log("Upload successful:", data.secure_url);
     
-    console.log("Upload success:", data.secure_url);
     return data.secure_url;
-  } catch (error: any) {
-    console.error("Upload error:", error);
-    throw new Error(error.message || "Upload gagal");
+  } catch (error) {
+    console.error("Error uploading to Cloudinary:", error);
+    throw error;
   }
 }

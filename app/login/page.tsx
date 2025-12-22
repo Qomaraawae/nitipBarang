@@ -2,23 +2,51 @@
 import { useState } from "react";
 import { login } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("admin@tempat.com");
-  const [password, setPassword] = useState("123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
+    
     try {
-      await login(email, password);
-      router.replace("/"); 
-    } catch (err) {
+      // Login dan dapatkan user data dengan role
+      const userData = await login(email, password);
+      
+      console.log("User logged in:", userData);
+      
+      // Redirect berdasarkan role
+      if (userData.role === "admin") {
+        console.log("Redirecting to admin dashboard...");
+        router.push("/admin/dashboard");
+      } else {
+        console.log("Redirecting to user dashboard...");
+        router.push("/user/dashboard");
+      }
+      
+    } catch (err: any) {
       console.error("Login error:", err);
-      alert("Login gagal. Cek email/password");
-    } finally {
+      
+      // Handle specific error codes
+      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+        setError("Email atau password salah!");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Format email tidak valid!");
+      } else if (err.code === "auth/invalid-credential") {
+        setError("Email atau password salah!");
+      } else if (err.message === "User data not found in database") {
+        setError("Data user tidak ditemukan. Silakan hubungi admin.");
+      } else {
+        setError("Login gagal. Coba lagi.");
+      }
+      
       setLoading(false);
     }
   };
@@ -34,15 +62,22 @@ export default function LoginPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-800">Selamat Datang di Nitip Barang</h1>
+            <h1 className="text-3xl font-bold text-gray-800">Selamat Datang</h1>
+            <p className="text-sm text-gray-500">Login ke Sistem Penitipan Barang</p>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start space-x-2">
+              <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
           {/* Form */}
-          <div className="space-y-5" onKeyDown={(e) => {
-            if (e.key === 'Enter' && !loading) {
-              handleLogin(e as any);
-            }
-          }}>
+          <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 block">Email</label>
               <div className="relative">
@@ -55,7 +90,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@tempat.com"
+                  placeholder="admin@example.com"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-gray-900"
                   required
                 />
@@ -82,7 +117,7 @@ export default function LoginPage() {
             </div>
 
             <button
-              onClick={handleLogin}
+              type="submit"
               disabled={loading}
               className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
@@ -98,19 +133,29 @@ export default function LoginPage() {
                 "MASUK"
               )}
             </button>
-          </div>
+          </form>
 
           {/* Footer */}
-          <div className="pt-4 border-t border-gray-200">
+          <div className="pt-4 border-t border-gray-200 space-y-3">
             <p className="text-center text-sm text-gray-500">
-              Lupa password? <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">Reset di sini</a>
+              Belum punya akun? <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">Daftar di sini</Link>
+            </p>
+            <p className="text-center text-sm text-gray-500">
+              <a href="#" className="text-gray-400 hover:text-gray-600">Lupa password?</a>
             </p>
           </div>
         </div>
 
         {/* Additional Info */}
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-xs text-blue-800 text-center font-medium mb-2">💡 Info Login</p>
+          <p className="text-xs text-blue-700 text-center">
+            Gunakan email dan password yang sudah terdaftar untuk masuk ke sistem
+          </p>
+        </div>
+
         <p className="text-center text-xs text-gray-500 mt-6">
-          © 2024 Admin Dashboard. All rights reserved.
+          © 2024 Penitipan Barang. All rights reserved.
         </p>
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getDocs, collection, query, where } from "firebase/firestore";
-import { db } from "@/lib/firebase/firestore";
+import { db } from "@/lib/firebase/firebaseConfig";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 
@@ -13,6 +13,7 @@ interface PageProps {
 export default function DetailBarang({ params }: PageProps) {
   const [barang, setBarang] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showCopyNotif, setShowCopyNotif] = useState(false); // ✅ State untuk notifikasi
 
   useEffect(() => {
     async function fetchData() {
@@ -20,7 +21,6 @@ export default function DetailBarang({ params }: PageProps) {
         const { id } = await params;
         console.log("🔍 Mencari barang dengan kode_ambil:", id);
         
-        // Query Firestore untuk mencari dokumen berdasarkan kode_ambil
         const q = query(collection(db, "barang"), where("kode_ambil", "==", id));
         const querySnapshot = await getDocs(q);
         
@@ -30,7 +30,6 @@ export default function DetailBarang({ params }: PageProps) {
           return;
         }
 
-        // Ambil dokumen pertama yang cocok
         const doc = querySnapshot.docs[0];
         const data = { id: doc.id, ...doc.data() };
         console.log("✅ Barang ditemukan:", data);
@@ -45,6 +44,22 @@ export default function DetailBarang({ params }: PageProps) {
 
     fetchData();
   }, [params]);
+
+  // ✅ Function untuk copy kode dengan notifikasi
+  const handleCopyKode = async () => {
+    try {
+      await navigator.clipboard.writeText(barang.kode_ambil);
+      setShowCopyNotif(true);
+      
+      // Auto hide after 3 seconds
+      setTimeout(() => {
+        setShowCopyNotif(false);
+      }, 3000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      alert('Gagal menyalin kode');
+    }
+  };
 
   if (loading) {
     return (
@@ -112,11 +127,11 @@ export default function DetailBarang({ params }: PageProps) {
                   <div className="flex items-center space-x-3">
                     <span className="text-3xl font-bold text-blue-600">{barang.kode_ambil}</span>
                     <button
-                      onClick={() => navigator.clipboard.writeText(barang.kode_ambil)}
-                      className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                      onClick={handleCopyKode}
+                      className="group p-2 hover:bg-blue-50 rounded-lg transition-all duration-200 relative"
                       title="Copy kode"
                     >
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
                     </button>
@@ -204,12 +219,10 @@ export default function DetailBarang({ params }: PageProps) {
           <div className="mt-6">
             <a
               href={(() => {
-                // Format nomor WhatsApp
                 let phone = barang.no_hp.replace(/\D/g, '');
                 if (phone.startsWith('0')) phone = '62' + phone.substring(1);
                 if (!phone.startsWith('62')) phone = '62' + phone;
                 
-                // Format pesan dengan template literal
                 const message = encodeURIComponent(
                   `Halo ${barang.nama_pemilik}!
 
@@ -220,7 +233,7 @@ Kode Ambil: *${barang.kode_ambil}*
 
 Jangan lupa simpan kode ini ya! Kamu butuh kode ini untuk ambil barang nanti.
 
-Cek detail: ${window.location.href}`
+Cek detail: ${typeof window !== 'undefined' ? window.location.href : ''}`
                 );
                 
                 return `https://wa.me/${phone}?text=${message}`;
@@ -236,7 +249,71 @@ Cek detail: ${window.location.href}`
             </a>
           </div>
         )}
+
+        {/* ✅ Toast Notification - Copy Success */}
+        {showCopyNotif && (
+          <div className="fixed top-4 right-4 z-50 animate-slideInRight">
+            <div className="bg-white rounded-xl shadow-2xl border border-green-200 overflow-hidden max-w-sm">
+              <div className="flex items-center p-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-semibold text-gray-900">Berhasil disalin!</p>
+                  <p className="text-xs text-gray-600 mt-0.5">Kode <span className="font-mono font-bold">{barang.kode_ambil}</span> sudah tersalin</p>
+                </div>
+                <button
+                  onClick={() => setShowCopyNotif(false)}
+                  className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              {/* Progress bar */}
+              <div className="h-1 bg-gray-100">
+                <div className="h-full bg-green-500 animate-shrink" style={{ animationDuration: '3s' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* ✅ Add animation styles */}
+      <style jsx>{`
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes shrink {
+          from {
+            width: 100%;
+          }
+          to {
+            width: 0%;
+          }
+        }
+        
+        .animate-slideInRight {
+          animation: slideInRight 0.3s ease-out;
+        }
+        
+        .animate-shrink {
+          animation: shrink 3s linear;
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,7 +1,7 @@
-import { getFirestore, collection, CollectionReference, DocumentData } from "firebase/firestore";
-import { app } from "./firebaseConfig";
+import { collection, CollectionReference } from "firebase/firestore";
+import { db } from "./firebaseConfig"; // ✅ Import db dari config
 import { Barang } from "../types";
 
-export const db = getFirestore(app);
-
+// Export collection references
 export const barangCollection = collection(db, "barang") as CollectionReference<Barang>;
+export const historiCollection = collection(db, "histori");

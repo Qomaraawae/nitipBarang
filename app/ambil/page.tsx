@@ -1,13 +1,15 @@
 "use client";
 import { useState } from "react";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import SuccessNotification from "@/components/SuccessNotification";
 import { barangCollection } from "@/lib/firebase/firestore";
 import { query, where, getDocs, updateDoc, doc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { logger } from "@/lib/logger";
 import Image from "next/image";
 
-export default function AmbilPage() {
+function AmbilPageContent() {
   const [kode, setKode] = useState("");
   const [barang, setBarang] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -22,32 +24,45 @@ export default function AmbilPage() {
       setError("Masukkan kode ambil terlebih dahulu");
       return;
     }
+    
     setLoading(true);
     setError("");
     setBarang(null);
     
     try {
-      const q = query(barangCollection, where("kode_ambil", "==", kodeAmbil.toUpperCase()));
+      const normalizedKode = kodeAmbil.trim().toUpperCase();
+      
+      logger.log("Searching for code:", normalizedKode);
+      
+      const q = query(barangCollection, where("kode_ambil", "==", normalizedKode));
       const snapshot = await getDocs(q);
+      
+      logger.log("Query result:", snapshot.size, "docs");
       
       if (!snapshot.empty) {
         const docSnap = snapshot.docs[0];
         const data = { id: docSnap.id, ...docSnap.data() };
+        
+        logger.log("Barang found:", data.nama_pemilik);
         
         if (data.status === 'diambil') {
           setError("Barang dengan kode ini sudah diambil sebelumnya.");
           setBarang(null);
         } else {
           setBarang(data);
+          setError("");
         }
       } else {
+        logger.log("No matching document found");
         setError("Kode tidak ditemukan! Periksa kembali kode Anda.");
         setBarang(null);
       }
+      
     } catch (err) {
-      console.error("Error searching:", err);
-      setError("Terjadi kesalahan: " + (err as Error).message);
+      logger.error("Error searching:", err);
+      setError("Terjadi kesalahan. Silakan coba lagi.");
     }
+    
     setLoading(false);
   };
 
@@ -69,20 +84,20 @@ export default function AmbilPage() {
         waktu_keluar: serverTimestamp(),
       });
       
-      // Show success notification
+      logger.log("Status updated successfully");
+      
       setSuccessData({
         nama: barang.nama_pemilik,
         kode: barang.kode_ambil
       });
       setShowSuccessNotif(true);
       
-      // Redirect after notification closes (5 seconds)
       setTimeout(() => {
         router.push("/");
       }, 5000);
     } catch (err) {
-      console.error("Error updating:", err);
-      setError("Gagal mengupdate status barang: " + (err as Error).message);
+      logger.error("Error updating:", err);
+      setError("Gagal mengupdate status barang. Silakan coba lagi.");
       setLoading(false);
     }
   };
@@ -90,7 +105,6 @@ export default function AmbilPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <a 
             href="/"
@@ -111,6 +125,9 @@ export default function AmbilPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-800">Ambil Barang</h1>
               <p className="text-gray-500 mt-1">Scan barcode atau masukkan kode manual</p>
+              <span className="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                👑 ADMIN ONLY
+              </span>
             </div>
           </div>
         </div>
@@ -127,7 +144,7 @@ export default function AmbilPage() {
           </div>
           <div className="p-6">
             <BarcodeScanner onScan={(k) => {
-              const upperCode = k.toUpperCase();
+              const upperCode = k.toUpperCase().trim();
               setKode(upperCode);
               cariBarangByKode(upperCode);
             }} />
@@ -151,7 +168,8 @@ export default function AmbilPage() {
                 placeholder="Masukkan kode ambil"
                 value={kode}
                 onChange={(e) => {
-                  setKode(e.target.value.toUpperCase());
+                  const normalized = e.target.value.toUpperCase().trim();
+                  setKode(normalized);
                   setError("");
                   setBarang(null);
                 }}
@@ -169,8 +187,8 @@ export default function AmbilPage() {
             
             {error && (
               <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <p className="text-red-700 font-medium">{error}</p>
@@ -222,7 +240,6 @@ export default function AmbilPage() {
             
             <div className="p-8">
               <div className="grid md:grid-cols-2 gap-8">
-                {/* Info Section */}
                 <div className="space-y-6">
                   <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-100">
                     <div className="flex items-center space-x-3 mb-4">
@@ -276,7 +293,6 @@ export default function AmbilPage() {
                   </div>
                 </div>
 
-                {/* Photo Section */}
                 <div>
                   <label className="text-sm font-medium text-gray-500 mb-3 block">Foto Barang</label>
                   {barang.foto_url ? (
@@ -302,7 +318,6 @@ export default function AmbilPage() {
                 </div>
               </div>
 
-              {/* Confirm Button */}
               <button
                 onClick={handleKonfirmasiClick}
                 disabled={loading || barang.status === 'diambil'}
@@ -336,7 +351,7 @@ export default function AmbilPage() {
           </div>
         )}
 
-        {/* Custom Confirmation Modal */}
+        {/* Confirmation Modal */}
         {showConfirmModal && barang && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
             <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-scaleIn">
@@ -387,7 +402,7 @@ export default function AmbilPage() {
           </div>
         )}
 
-        {/* Success Notification Popup */}
+        {/* Success Notification */}
         <SuccessNotification
           show={showSuccessNotif}
           title="Barang berhasil diambil!"
@@ -396,5 +411,13 @@ export default function AmbilPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function AmbilPage() {
+  return (
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <AmbilPageContent />
+    </ProtectedRoute>
   );
 }
