@@ -96,7 +96,7 @@ export default function TitipPage() {
       });
 
       // Kirim notifikasi WhatsApp
-      const linkDetail = `${window.location.origin}/barang/${kode}`;
+      /* const linkDetail = `${window.location.origin}/barang/${kode}`;
       const pesanWA = encodeURIComponent(
         `Halo ${nama}! \u{1F44B}
 
@@ -109,7 +109,7 @@ Jangan lupa simpan kode ini ya! Kamu butuh kode ini untuk ambil barang nanti.
 
 Cek detail: ${linkDetail}`
       );
-      window.open(`https://wa.me/${hp.replace(/[^0-9]/g, "")}?text=${pesanWA}`, "_blank");
+      window.open(`https://wa.me/${hp.replace(/[^0-9]/g, "")}?text=${pesanWA}`, "_blank"); */
 
       // Tampilkan notifikasi sukses
       setSuccessData({ nama, slot, kode });
@@ -118,7 +118,7 @@ Cek detail: ${linkDetail}`
       // Auto redirect setelah 5 detik
       setTimeout(() => {
         router.push("/");
-      }, 5000);
+      }, 3000);
     } catch (err) {
       console.error("Error saving:", err);
       alert("Gagal simpan: " + (err as Error).message);
@@ -468,7 +468,7 @@ Cek detail: ${linkDetail}`
               </button>
               
               <p className="text-center text-xs text-gray-500 mt-2 sm:mt-3">
-                Auto redirect dalam 5 detik...
+                Auto redirect dalam 3 detik...
               </p>
             </div>
           </div>
