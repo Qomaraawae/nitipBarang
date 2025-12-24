@@ -5,7 +5,7 @@ import { getDocs, collection, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebaseConfig";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { useAuth } from "@/context/AuthContext"; // ✅ Import useAuth
+import { useAuth } from "@/context/AuthContext"; 
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -28,7 +28,7 @@ export default function DetailBarang({ params }: PageProps) {
   const [showCopyNotif, setShowCopyNotif] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const { user, role } = useAuth(); // ✅ Tambahkan useAuth untuk cek role
+  const { user, role } = useAuth(); 
 
   useEffect(() => {
     async function fetchData() {
@@ -140,7 +140,7 @@ export default function DetailBarang({ params }: PageProps) {
 
   if (!barang || !user) return null;
 
-  const isAdmin = role === "admin"; // ✅ Cek apakah user adalah admin
+  const isAdmin = role === "admin"; // Cek user or admin
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
