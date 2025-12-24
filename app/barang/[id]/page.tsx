@@ -5,7 +5,9 @@ import { getDocs, collection, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebaseConfig";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { useAuth } from "@/context/AuthContext"; 
+import { useAuth } from "@/context/AuthContext";
+import { ModeToggle } from "@/components/mode-toggle";
+import Link from "next/link";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -28,7 +30,7 @@ export default function DetailBarang({ params }: PageProps) {
   const [showCopyNotif, setShowCopyNotif] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const { user, role } = useAuth(); 
+  const { user, role } = useAuth();
 
   useEffect(() => {
     async function fetchData() {
@@ -129,10 +131,10 @@ export default function DetailBarang({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Memuat data...</p>
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground font-medium">Memuat data...</p>
         </div>
       </div>
     );
@@ -143,28 +145,32 @@ export default function DetailBarang({ params }: PageProps) {
   const isAdmin = role === "admin"; // Cek user or admin
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
+    <div className="min-h-screen bg-background text-foreground py-8 px-4">
       <div className="max-w-4xl mx-auto">
+        {/* Header */}
         <div className="mb-8">
-          <a
-            href="/"
-            className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-800 mb-4 group transition-colors"
-          >
-            <svg
-              className="w-5 h-5 group-hover:-translate-x-1 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center justify-between mb-4">
+            <Link
+              href="/"
+              className="inline-flex items-center space-x-2 text-muted-foreground hover:text-foreground group transition-colors"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            <span className="font-medium">Kembali</span>
-          </a>
+              <svg
+                className="w-5 h-5 group-hover:-translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              <span className="font-medium">Kembali ke Dashboard</span>
+            </Link>
+            <ModeToggle />
+          </div>
 
           <div className="flex items-center space-x-4">
             <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -183,17 +189,17 @@ export default function DetailBarang({ params }: PageProps) {
               </svg>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">
+              <h1 className="text-3xl font-bold text-foreground">
                 Detail Barang
               </h1>
-              <p className="text-gray-500 mt-1">
+              <p className="text-muted-foreground mt-1">
                 Informasi lengkap barang titipan
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
           <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-8 py-4">
             <div className="flex items-center justify-between">
               <span className="text-white font-semibold">Status</span>
@@ -213,20 +219,20 @@ export default function DetailBarang({ params }: PageProps) {
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Kode Ambil
                   </label>
                   <div className="flex items-center space-x-3">
-                    <span className="text-3xl font-bold text-blue-600">
+                    <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                       {barang.kode_ambil}
                     </span>
                     <button
                       onClick={handleCopyKode}
-                      className="group p-2 hover:bg-blue-50 rounded-lg transition-all duration-200 relative"
+                      className="group p-2 hover:bg-primary/10 rounded-lg transition-all duration-200 relative"
                       title="Copy kode"
                     >
                       <svg
-                        className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors"
+                        className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -242,10 +248,10 @@ export default function DetailBarang({ params }: PageProps) {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+                <div className="bg-secondary rounded-xl p-6 space-y-4">
                   <div className="flex items-start space-x-3">
                     <svg
-                      className="w-5 h-5 text-blue-600 mt-0.5"
+                      className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -258,10 +264,10 @@ export default function DetailBarang({ params }: PageProps) {
                       />
                     </svg>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-500">
+                      <p className="text-sm font-medium text-muted-foreground">
                         Nama Pemilik
                       </p>
-                      <p className="text-lg font-bold text-gray-800">
+                      <p className="text-lg font-bold text-foreground">
                         {barang.nama_pemilik}
                       </p>
                     </div>
@@ -269,7 +275,7 @@ export default function DetailBarang({ params }: PageProps) {
 
                   <div className="flex items-start space-x-3">
                     <svg
-                      className="w-5 h-5 text-green-600 mt-0.5"
+                      className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -282,10 +288,10 @@ export default function DetailBarang({ params }: PageProps) {
                       />
                     </svg>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-500">
+                      <p className="text-sm font-medium text-muted-foreground">
                         No. WhatsApp
                       </p>
-                      <p className="text-lg font-bold text-gray-800">
+                      <p className="text-lg font-bold text-foreground">
                         {barang.no_hp}
                       </p>
                     </div>
@@ -293,7 +299,7 @@ export default function DetailBarang({ params }: PageProps) {
 
                   <div className="flex items-start space-x-3">
                     <svg
-                      className="w-5 h-5 text-purple-600 mt-0.5"
+                      className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -306,10 +312,10 @@ export default function DetailBarang({ params }: PageProps) {
                       />
                     </svg>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-500">
+                      <p className="text-sm font-medium text-muted-foreground">
                         Nomor Slot
                       </p>
-                      <p className="text-lg font-bold text-gray-800">
+                      <p className="text-lg font-bold text-foreground">
                         Slot {barang.slot}
                       </p>
                     </div>
@@ -317,7 +323,7 @@ export default function DetailBarang({ params }: PageProps) {
 
                   <div className="flex items-start space-x-3">
                     <svg
-                      className="w-5 h-5 text-indigo-600 mt-0.5"
+                      className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -330,10 +336,10 @@ export default function DetailBarang({ params }: PageProps) {
                       />
                     </svg>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-500">
+                      <p className="text-sm font-medium text-muted-foreground">
                         Waktu Masuk
                       </p>
-                      <p className="text-lg font-bold text-gray-800">
+                      <p className="text-lg font-bold text-foreground">
                         {barang.waktu_masuk?.toDate().toLocaleString("id-ID", {
                           dateStyle: "full",
                           timeStyle: "short",
@@ -345,20 +351,20 @@ export default function DetailBarang({ params }: PageProps) {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-500 mb-2 block">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
                   Foto Barang
                 </label>
                 {barang.foto_url ? (
-                  <div className="group relative rounded-xl overflow-hidden shadow-lg border-2 border-gray-200 aspect-square">
+                  <div className="group relative rounded-xl overflow-hidden shadow-lg border-2 border-border aspect-square">
                     <button
                       onClick={openImageModal}
                       className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300 z-10 cursor-zoom-in"
                       aria-label="Preview foto barang"
                     >
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                        <div className="bg-card/90 backdrop-blur-sm p-3 rounded-full shadow-lg transform group-hover:scale-110 transition-transform duration-300">
                           <svg
-                            className="w-8 h-8 text-gray-800"
+                            className="w-8 h-8 text-foreground"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -383,10 +389,10 @@ export default function DetailBarang({ params }: PageProps) {
                     />
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 aspect-square">
+                  <div className="flex items-center justify-center bg-secondary rounded-xl border-2 border-dashed border-border aspect-square">
                     <div className="text-center">
                       <svg
-                        className="w-16 h-16 text-gray-400 mx-auto mb-3"
+                        className="w-16 h-16 text-muted-foreground mx-auto mb-3"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -398,7 +404,7 @@ export default function DetailBarang({ params }: PageProps) {
                           d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      <p className="text-gray-500 font-medium">
+                      <p className="text-muted-foreground font-medium">
                         Tidak ada foto
                       </p>
                     </div>
@@ -560,12 +566,12 @@ Cek detail: ${typeof window !== "undefined" ? window.location.href : ""}`
 
         {showCopyNotif && (
           <div className="fixed top-4 right-4 z-50 animate-slideInRight">
-            <div className="bg-white rounded-xl shadow-2xl border border-green-200 overflow-hidden max-w-sm">
+            <div className="bg-card rounded-xl shadow-2xl border border-green-200 dark:border-green-800 overflow-hidden max-w-sm">
               <div className="flex items-center p-4">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                     <svg
-                      className="w-6 h-6 text-green-600"
+                      className="w-6 h-6 text-green-600 dark:text-green-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -580,12 +586,12 @@ Cek detail: ${typeof window !== "undefined" ? window.location.href : ""}`
                   </div>
                 </div>
                 <div className="ml-3 flex-1">
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-foreground">
                     Berhasil disalin!
                   </p>
-                  <p className="text-xs text-gray-600 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     Kode{" "}
-                    <span className="font-mono font-bold">
+                    <span className="font-mono font-bold text-foreground">
                       {barang.kode_ambil}
                     </span>{" "}
                     sudah tersalin
@@ -593,7 +599,7 @@ Cek detail: ${typeof window !== "undefined" ? window.location.href : ""}`
                 </div>
                 <button
                   onClick={() => setShowCopyNotif(false)}
-                  className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="ml-4 flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <svg
                     className="w-5 h-5"
@@ -610,7 +616,7 @@ Cek detail: ${typeof window !== "undefined" ? window.location.href : ""}`
                   </svg>
                 </button>
               </div>
-              <div className="h-1 bg-gray-100">
+              <div className="h-1 bg-secondary">
                 <div
                   className="h-full bg-green-500 animate-shrink"
                   style={{ animationDuration: "3s" }}
@@ -620,64 +626,6 @@ Cek detail: ${typeof window !== "undefined" ? window.location.href : ""}`
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes slideInRight {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-
-        @keyframes shrink {
-          from {
-            width: 100%;
-          }
-          to {
-            width: 0%;
-          }
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes scaleIn {
-          from {
-            transform: scale(0.9);
-            opacity: 0;
-          }
-          to {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-
-        .animate-slideInRight {
-          animation: slideInRight 0.3s ease-out;
-        }
-
-        .animate-shrink {
-          animation: shrink 3s linear;
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.2s ease-out;
-        }
-
-        .animate-scaleIn {
-          animation: scaleIn 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 }
