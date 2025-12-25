@@ -8,10 +8,11 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig";
+import { logger, maskUid, maskEmail } from "@/lib/logger";
 
 // Set persistence
 setPersistence(auth, browserLocalPersistence).catch(error => {
-  console.error("Error setting auth persistence:", error);
+  logger.error("Error setting auth persistence", error);
 });
 
 export type UserRole = "admin" | "user";
@@ -33,13 +34,18 @@ export async function login(email: string, password: string): Promise<UserData> 
     const userDoc = await getDoc(doc(db, "users", user.uid));
     
     if (!userDoc.exists()) {
+      logger.error("User data not found in database", { 
+        uid: maskUid(user.uid),
+        email: maskEmail(email)
+      });
       throw new Error("User data not found in database");
     }
     
     const userData = userDoc.data();
     const role = userData.role as UserRole;
     
-    console.log("Login successful:", user.email, "with role:", role);
+    // Gunakan logger.auth yang aman
+    logger.auth.login(email, role);
     
     // 3. Return user data with role
     return {
@@ -48,16 +54,22 @@ export async function login(email: string, password: string): Promise<UserData> 
       role: role
     };
   } catch (error: any) {
-    console.error("Login error:", error.code, error.message);
+    // Log error dengan data yang disensor
+    logger.error("Login failed", {
+      errorCode: error.code,
+      errorMessage: error.message,
+      email: maskEmail(email) // Email dimask
+    });
+    
     throw error;
   }
 }
 
-// Register function with role
+// Register function dengan logging aman
 export async function register(
   email: string, 
   password: string, 
-  role: UserRole = "user" // Default role adalah "user"
+  role: UserRole = "user"
 ) {
   try {
     // Create auth user
@@ -71,7 +83,8 @@ export async function register(
       createdAt: serverTimestamp(),
     });
 
-    console.log("Registration successful:", user.email, "with role:", role);
+    // Gunakan logger.auth yang aman
+    logger.auth.register(email, role);
     
     return {
       uid: user.uid,
@@ -79,7 +92,12 @@ export async function register(
       role: role
     };
   } catch (error: any) {
-    console.error("Registration error:", error.code, error.message);
+    logger.error("Registration failed", {
+      errorCode: error.code,
+      errorMessage: error.message,
+      email: maskEmail(email)
+    });
+    
     throw error;
   }
 }
@@ -89,30 +107,52 @@ export async function getUserRole(uid: string): Promise<UserRole | null> {
   try {
     const userDoc = await getDoc(doc(db, "users", uid));
     if (userDoc.exists()) {
-      return userDoc.data().role as UserRole;
+      const role = userDoc.data().role as UserRole;
+      logger.log("Retrieved user role", {
+        uid: maskUid(uid),
+        role: role
+      });
+      return role;
     }
+    logger.warn("User document not found", { uid: maskUid(uid) });
     return null;
   } catch (error) {
-    console.error("Error getting user role:", error);
+    logger.error("Error getting user role", { 
+      uid: maskUid(uid),
+      error 
+    });
     return null;
   }
 }
 
-// Get user data with role
+// Get user data dengan logging aman
 export async function getUserData(uid: string): Promise<UserData | null> {
   try {
     const userDoc = await getDoc(doc(db, "users", uid));
     if (userDoc.exists()) {
       const data = userDoc.data();
-      return {
+      const userData = {
         uid: uid,
         email: data.email,
         role: data.role as UserRole
       };
+      
+      // Gunakan logger.log biasa (data akan di-sanitize otomatis)
+      logger.log("Retrieved user data", { 
+        uid: maskUid(userData.uid),
+        email: maskEmail(userData.email),
+        role: userData.role
+      });
+      
+      return userData;
     }
+    logger.warn("User data not found", { uid: maskUid(uid) });
     return null;
   } catch (error) {
-    console.error("Error getting user data:", error);
+    logger.error("Error getting user data", { 
+      uid: maskUid(uid),
+      error 
+    });
     return null;
   }
 }
@@ -120,15 +160,41 @@ export async function getUserData(uid: string): Promise<UserData | null> {
 // Logout function
 export async function logout() {
   try {
+    const currentUser = auth.currentUser;
     await signOut(auth);
-    console.log("Logout successful");
+    
+    // Gunakan logger.auth yang aman
+    logger.auth.logout(currentUser?.email || null);
   } catch (error) {
-    console.error("Logout error:", error);
+    logger.error("Logout failed", error);
     throw error;
   }
 }
 
 // Get current user
 export function getCurrentUser(): User | null {
-  return auth.currentUser;
+  const user = auth.currentUser;
+  
+  // Debug logging hanya di development dengan data disensor
+  if (process.env.NODE_ENV === 'development' && user) {
+    logger.log("Current user data", {
+      uid: maskUid(user.uid),
+      email: maskEmail(user.email),
+      emailVerified: user.emailVerified
+    });
+  }
+  
+  return user;
+}
+
+// Utility untuk mendapatkan auth state dengan logging
+export function onAuthStateChange(callback: (user: User | null) => void) {
+  return auth.onAuthStateChanged((user) => {
+    if (user) {
+      logger.auth.login(maskEmail(user.email), 'unknown'); // Email dimask
+    } else {
+      logger.auth.logout(null);
+    }
+    callback(user);
+  });
 }

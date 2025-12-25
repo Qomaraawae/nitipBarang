@@ -48,6 +48,7 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface Barang {
   id: string;
@@ -108,7 +109,10 @@ export default function AmbilPage() {
         toast.error("Kode tidak ditemukan");
       }
     } catch (err) {
-      console.error("Error searching:", err);
+      logger.error("Error searching barang:", {
+        kode: kodeAmbil,
+        error: err,
+      });
       setError("Terjadi kesalahan. Silakan coba lagi.");
       toast.error("Terjadi kesalahan");
     }
@@ -147,7 +151,10 @@ export default function AmbilPage() {
         router.push("/histori");
       }, 2000);
     } catch (err) {
-      console.error("Error updating:", err);
+      logger.error("Error updating barang status:", {
+        barangId: barang.id,
+        error: err,
+      });
       toast.error("Gagal mengambil barang");
     } finally {
       setLoading(false);

@@ -29,16 +29,39 @@ import {
   Search,
   History,
 } from "lucide-react";
+import { logger, maskEmail, maskUid } from "@/lib/logger";
+import { useEffect } from "react";
 
 export default function Dashboard() {
   const { user, role, userData, loading: authLoading } = useAuth();
   const { barang, loading: dataLoading } = useBarangRealTime();
 
+  // LOG USER LOGIN SECURELY
+  useEffect(() => {
+    if (user && !authLoading) {
+      // Gunakan logger.auth.login yang sudah aman
+      logger.auth.login(user.email || "", role || "user");
+
+      // Untuk debugging terbatas, gunakan logger.log dengan data yang dimask
+      if (
+        process.env.NODE_ENV === "development" &&
+        process.env.NEXT_PUBLIC_DEBUG_USER === "true"
+      ) {
+        logger.log("User logged in details", {
+          uid: maskUid(user.uid),
+          email: maskEmail(user.email),
+          role: role,
+          hasEmailVerified: user.emailVerified || false,
+        });
+      }
+    }
+  }, [user, authLoading, role]);
+
   const handleLogout = async () => {
     try {
       await logout();
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error("Logout error:", error);
     }
   };
 
@@ -245,47 +268,36 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          {isAdmin && (
-            <>
-              <Link href="/titip">
-                <Button className="w-full h-auto py-6 flex-col gap-2 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
-                  <Plus className="h-6 w-6" />
-                  <span className="font-bold">Titip Barang</span>
-                  <span className="text-xs opacity-90">Tambah barang baru</span>
+        {/* Action Buttons - CENTERED dengan ukuran lebih lebar */}
+        {isAdmin && (
+          <div className="flex justify-center mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-5xl">
+              <Link href="/titip" className="flex justify-center">
+                <Button className="w-full h-auto py-8 flex-col gap-3 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[140px]">
+                  <Plus className="h-10 w-10 mb-2" />
+                  <span className="font-bold text-xl">Titip Barang</span>
+                  <span className="text-sm opacity-90">Tambah barang baru</span>
                 </Button>
               </Link>
 
-              <Link href="/ambil">
-                <Button className="w-full h-auto py-6 flex-col gap-2 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
-                  <Search className="h-6 w-6" />
-                  <span className="font-bold">Ambil Barang</span>
-                  <span className="text-xs opacity-90">Proses pengambilan</span>
+              <Link href="/ambil" className="flex justify-center">
+                <Button className="w-full h-auto py-8 flex-col gap-3 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[140px]">
+                  <Search className="h-10 w-10 mb-2" />
+                  <span className="font-bold text-xl">Ambil Barang</span>
+                  <span className="text-sm opacity-90">Proses pengambilan</span>
                 </Button>
               </Link>
 
-              <Link href="/histori">
-                <Button className="w-full h-auto py-6 flex-col gap-2 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700">
-                  <History className="h-6 w-6" />
-                  <span className="font-bold">Histori</span>
-                  <span className="text-xs opacity-90">Riwayat aktivitas</span>
+              <Link href="/histori" className="flex justify-center">
+                <Button className="w-full h-auto py-8 flex-col gap-3 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[140px]">
+                  <History className="h-10 w-10 mb-2" />
+                  <span className="font-bold text-xl">Histori</span>
+                  <span className="text-sm opacity-90">Riwayat aktivitas</span>
                 </Button>
               </Link>
-
-              <Link href="/barang">
-                <Button
-                  className="w-full h-auto py-6 flex-col gap-2"
-                  variant="outline"
-                >
-                  <Package className="h-6 w-6" />
-                  <span className="font-bold">Daftar Barang</span>
-                  <span className="text-xs opacity-90">Lihat semua barang</span>
-                </Button>
-              </Link>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
 
         {/* Barang List */}
         <Card>
@@ -301,11 +313,6 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="all" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="all">Semua</TabsTrigger>
-                <TabsTrigger value="active">Masih Dititip</TabsTrigger>
-              </TabsList>
-
               <TabsContent value="all" className="mt-4">
                 {dataLoading ? (
                   <div className="flex justify-center py-8">

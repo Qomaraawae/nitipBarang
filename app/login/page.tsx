@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { LogIn, Mail, Lock, AlertCircle, Shield } from "lucide-react";
+import { logger } from "@/lib/logger"; // TAMBAHKAN IMPORT
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -36,7 +37,8 @@ export default function LoginPage() {
       // Login dan dapatkan user data dengan role
       const userData = await login(email, password);
 
-      console.log("User logged in:", userData);
+      // GANTI console.log DENGAN LOGGER
+      logger.auth.login(userData.email || "", userData.role);
 
       toast.success("Login berhasil!", {
         description: `Selamat datang ${userData.email}`,
@@ -45,7 +47,12 @@ export default function LoginPage() {
       // Redirect ke dashboard
       router.push("/");
     } catch (err: any) {
-      console.error("Login error:", err);
+      // GANTI console.error DENGAN LOGGER
+      logger.error("Login failed", {
+        errorCode: err.code,
+        errorMessage: err.message,
+        email: email, // Email tidak dimask karena sudah di logger
+      });
 
       // Handle specific error codes
       if (

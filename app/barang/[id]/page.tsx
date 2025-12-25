@@ -40,6 +40,7 @@ import {
   RotateCcw,
   MessageCircle,
 } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -83,7 +84,10 @@ export default function DetailBarang({ params }: PageProps) {
         const data = { id: doc.id, ...doc.data() } as Barang;
         setBarang(data);
       } catch (error) {
-        console.error("Error saat mengambil data:", error);
+        logger.error("Error fetching barang detail:", {
+          params: await params,
+          error: error,
+        });
         notFound();
       } finally {
         setLoading(false);
@@ -102,7 +106,10 @@ export default function DetailBarang({ params }: PageProps) {
         description: `Kode ${barang.kode_ambil} telah disalin ke clipboard`,
       });
     } catch (err) {
-      console.error("Failed to copy:", err);
+      logger.error("Failed to copy code to clipboard:", {
+        kode: barang?.kode_ambil,
+        error: err,
+      });
       toast.error("Gagal menyalin kode");
     }
   };

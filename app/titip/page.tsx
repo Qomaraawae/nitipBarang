@@ -10,15 +10,38 @@ import Link from "next/link";
 import { useSlotAvailability } from "@/hooks/useSlotAvailability";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Package, Phone, User, Camera, CheckCircle, Info } from "lucide-react";
+import {
+  ArrowLeft,
+  Package,
+  Phone,
+  User,
+  Camera,
+  CheckCircle,
+  Info,
+} from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface SuccessData {
   nama: string;
@@ -107,13 +130,16 @@ export default function TitipPage() {
       // Tampilkan notifikasi sukses
       setSuccessData({ nama, slot, kode });
       setShowSuccessDialog(true);
-      
+
       toast.success("Barang berhasil dititipkan!", {
         description: `Kode: ${kode}`,
       });
-
     } catch (err) {
-      console.error("Error saving:", err);
+      logger.error("Error saving barang:", {
+        nama: nama,
+        slot: slot,
+        error: err,
+      });
       toast.error("Gagal menyimpan data");
     } finally {
       setLoading(false);
@@ -137,7 +163,8 @@ export default function TitipPage() {
 
   const getSlotClassName = (slotNumber: number): string => {
     const status = getSlotStatus(slotNumber);
-    const baseClasses = "w-14 h-14 rounded-lg font-bold text-lg transition-all duration-200 flex items-center justify-center";
+    const baseClasses =
+      "w-14 h-14 rounded-lg font-bold text-lg transition-all duration-200 flex items-center justify-center";
 
     switch (status) {
       case "selected":
@@ -199,15 +226,21 @@ export default function TitipPage() {
                   <div className="flex flex-wrap gap-3 mb-6 pb-6 border-b">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 border-2 border-input rounded-lg"></div>
-                      <span className="text-sm text-muted-foreground">Tersedia</span>
+                      <span className="text-sm text-muted-foreground">
+                        Tersedia
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg"></div>
-                      <span className="text-sm text-muted-foreground">Dipilih</span>
+                      <span className="text-sm text-muted-foreground">
+                        Dipilih
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 bg-muted rounded-lg"></div>
-                      <span className="text-sm text-muted-foreground">Terisi</span>
+                      <span className="text-sm text-muted-foreground">
+                        Terisi
+                      </span>
                     </div>
                   </div>
 
@@ -216,7 +249,8 @@ export default function TitipPage() {
                     <Alert className="mb-6">
                       <CheckCircle className="h-4 w-4" />
                       <AlertDescription>
-                        Slot terpilih: <strong className="text-2xl ml-2">{slot}</strong>
+                        Slot terpilih:{" "}
+                        <strong className="text-2xl ml-2">{slot}</strong>
                       </AlertDescription>
                     </Alert>
                   )}
@@ -230,23 +264,33 @@ export default function TitipPage() {
                   ) : (
                     <div className="space-y-3">
                       {Array.from({ length: rows }, (_, rowIndex) => (
-                        <div key={rowIndex} className="flex justify-center gap-2">
-                          {Array.from({ length: slotsPerRow }, (_, colIndex) => {
-                            const slotNumber = rowIndex * slotsPerRow + colIndex + 1;
-                            if (slotNumber > totalSlots) return null;
+                        <div
+                          key={rowIndex}
+                          className="flex justify-center gap-2"
+                        >
+                          {Array.from(
+                            { length: slotsPerRow },
+                            (_, colIndex) => {
+                              const slotNumber =
+                                rowIndex * slotsPerRow + colIndex + 1;
+                              if (slotNumber > totalSlots) return null;
 
-                            return (
-                              <button
-                                key={slotNumber}
-                                type="button"
-                                onClick={() => !isSlotOccupied(slotNumber) && setSlot(slotNumber)}
-                                disabled={isSlotOccupied(slotNumber)}
-                                className={getSlotClassName(slotNumber)}
-                              >
-                                {slotNumber}
-                              </button>
-                            );
-                          })}
+                              return (
+                                <button
+                                  key={slotNumber}
+                                  type="button"
+                                  onClick={() =>
+                                    !isSlotOccupied(slotNumber) &&
+                                    setSlot(slotNumber)
+                                  }
+                                  disabled={isSlotOccupied(slotNumber)}
+                                  className={getSlotClassName(slotNumber)}
+                                >
+                                  {slotNumber}
+                                </button>
+                              );
+                            }
+                          )}
                         </div>
                       ))}
                     </div>
@@ -260,7 +304,9 @@ export default function TitipPage() {
                         <p className="text-2xl font-bold text-green-600">
                           {totalSlots - occupiedSlots.length}
                         </p>
-                        <p className="text-sm text-muted-foreground">Slot Tersedia</p>
+                        <p className="text-sm text-muted-foreground">
+                          Slot Tersedia
+                        </p>
                       </CardContent>
                     </Card>
                     <Card>
@@ -268,7 +314,9 @@ export default function TitipPage() {
                         <p className="text-2xl font-bold text-destructive">
                           {occupiedSlots.length}
                         </p>
-                        <p className="text-sm text-muted-foreground">Slot Terisi</p>
+                        <p className="text-sm text-muted-foreground">
+                          Slot Terisi
+                        </p>
                       </CardContent>
                     </Card>
                   </div>
@@ -404,11 +452,9 @@ export default function TitipPage() {
               <CheckCircle className="h-5 w-5 text-green-600" />
               Berhasil Disimpan!
             </DialogTitle>
-            <DialogDescription>
-              Barang berhasil dititipkan
-            </DialogDescription>
+            <DialogDescription>Barang berhasil dititipkan</DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <Alert>
               <AlertDescription>
@@ -422,7 +468,9 @@ export default function TitipPage() {
                   <p className="text-center text-2xl font-bold text-purple-600">
                     {successData.slot}
                   </p>
-                  <p className="text-center text-sm text-muted-foreground">Slot</p>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Slot
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -430,7 +478,9 @@ export default function TitipPage() {
                   <p className="text-center text-xl font-bold text-blue-600 tracking-wider">
                     {successData.kode}
                   </p>
-                  <p className="text-center text-sm text-muted-foreground">Kode Ambil</p>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Kode Ambil
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -451,18 +501,19 @@ export default function TitipPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowSuccessDialog(false);
-              setNama("");
-              setHp("");
-              setSlot(null);
-              setFotoUrl(undefined);
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowSuccessDialog(false);
+                setNama("");
+                setHp("");
+                setSlot(null);
+                setFotoUrl(undefined);
+              }}
+            >
               Titip Lagi
             </Button>
-            <Button onClick={handleCloseSuccess}>
-              Kembali ke Dashboard
-            </Button>
+            <Button onClick={handleCloseSuccess}>Kembali ke Dashboard</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 export async function uploadToCloudinary(file: File): Promise<string> {
   // Validasi file type
   if (!file.type.startsWith("image/")) {
@@ -14,7 +16,7 @@ export async function uploadToCloudinary(file: File): Promise<string> {
   
   // Validasi cloud name ada
   if (!cloudName) {
-    console.error("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME is not set!");
+    logger.error("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME is not set!");
     throw new Error("Konfigurasi Cloudinary belum diatur. Hubungi admin.");
   }
 
@@ -23,7 +25,11 @@ export async function uploadToCloudinary(file: File): Promise<string> {
   formData.append("file", file);
   formData.append("upload_preset", "penitipan_barang");
 
-  console.log("Uploading to Cloudinary...", { cloudName });
+  logger.log("Uploading to Cloudinary...", { 
+    fileName: file.name, 
+    fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+    fileType: file.type 
+  });
 
   try {
     const response = await fetch(
@@ -36,16 +42,26 @@ export async function uploadToCloudinary(file: File): Promise<string> {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Cloudinary upload error:", errorData);
+      logger.error("Cloudinary upload error:", {
+        status: response.status,
+        fileName: file.name,
+        error: errorData
+      });
       throw new Error(`Upload failed: ${errorData.error?.message || "Unknown error"}`);
     }
 
     const data = await response.json();
-    console.log("Upload successful:", data.secure_url);
+    logger.log("Upload successful", {
+      fileName: file.name,
+      url: data.secure_url // URL akan di-sanitize otomatis
+    });
     
     return data.secure_url;
   } catch (error) {
-    console.error("Error uploading to Cloudinary:", error);
+    logger.error("Error uploading to Cloudinary:", {
+      fileName: file.name,
+      error: error
+    });
     throw error;
   }
 }

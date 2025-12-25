@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { UserPlus, Mail, Lock, AlertCircle } from "lucide-react";
+import { logger } from "@/lib/logger"; // TAMBAHKAN IMPORT
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -58,7 +59,12 @@ export default function RegisterPage() {
         router.replace("/login");
       }, 1500);
     } catch (err: any) {
-      console.error("Register error:", err);
+      // GANTI console.error DENGAN LOGGER
+      logger.error("Register failed", {
+        errorCode: err.code,
+        errorMessage: err.message,
+        email: email,
+      });
 
       let errorMessage = "Registrasi gagal. Coba lagi.";
 

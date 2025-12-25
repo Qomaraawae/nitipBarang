@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebaseConfig";
 import { Barang } from "@/types/barang";
+import { logger } from "@/lib/logger";
+
 
 export function useBarangRealTime() {
   const [barang, setBarang] = useState<(Barang & { id: string })[]>([]);
@@ -27,8 +29,8 @@ export function useBarangRealTime() {
         setLoading(false);
       },
       (error) => {
-        console.error("Error fetching barang:", error);
-        setLoading(false);
+  logger.error("Error fetching barang:", error);
+  setLoading(false);
       }
     );
 
@@ -69,10 +71,12 @@ export function useBarangByUser(userId: string) {
         setLoading(false);
       },
       (error) => {
-        console.error("Error fetching user barang:", error);
-        setLoading(false);
-      }
-    );
+  logger.error("Error fetching user barang:", {
+    userId: userId,
+    error: error
+  });
+  setLoading(false);
+});
 
     return () => unsubscribe();
   }, [userId]);

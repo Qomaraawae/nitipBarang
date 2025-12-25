@@ -1,10 +1,11 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
   reactStrictMode: true,
   
   // Image optimization config
   images: {
-    domains: ['res.cloudinary.com'], // Add your image domains here
+    domains: ['res.cloudinary.com'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -54,6 +55,22 @@ const nextConfig = {
       },
     ];
   },
+
+  // Konfigurasi Turbopack (wajib untuk Next.js 16+)
+  turbopack: {
+    // Kosongkan jika tidak butuh konfigurasi khusus
+    // Atau tambahkan konfigurasi jika diperlukan:
+    
+    // Untuk mengurangi logs HMR yang berlebihan:
+    // logLevel: 'error',
+    
+    // Jika perlu resolve alias:
+    // resolveAlias: {
+    //   // Contoh:
+    //   // '@components': './components',
+    //   // '@utils': './utils',
+    // },
+  },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
