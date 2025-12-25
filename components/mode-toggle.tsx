@@ -1,4 +1,3 @@
-// components/mode-toggle.tsx
 "use client";
 
 import * as React from "react";
@@ -35,11 +34,11 @@ export function ModeToggle() {
   const getIcon = () => {
     switch (theme) {
       case "dark":
-        return <Moon className="h-[1.2rem] w-[1.2rem]" />;
+        return <Moon className="h-[1.2rem] w-[1.2rem] no-transition" />;
       case "light":
-        return <Sun className="h-[1.2rem] w-[1.2rem]" />;
+        return <Sun className="h-[1.2rem] w-[1.2rem] no-transition" />;
       default:
-        return <Monitor className="h-[1.2rem] w-[1.2rem]" />;
+        return <Monitor className="h-[1.2rem] w-[1.2rem] no-transition" />;
     }
   };
 
@@ -57,7 +56,7 @@ export function ModeToggle() {
   if (!mounted) {
     return (
       <Button variant="outline" size="icon" disabled>
-        <Sun className="h-[1.2rem] w-[1.2rem]" />
+        <Sun className="h-[1.2rem] w-[1.2rem] no-transition" />
       </Button>
     );
   }

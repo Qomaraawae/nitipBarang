@@ -4,6 +4,21 @@ import { login } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { LogIn, Mail, Lock, AlertCircle, Shield } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -23,31 +38,32 @@ export default function LoginPage() {
 
       console.log("User logged in:", userData);
 
-      // Redirect berdasarkan role
-      if (userData.role === "admin") {
-        console.log("Redirecting to admin dashboard...");
-        router.push("/");
-      } else {
-        console.log("Redirecting to user dashboard...");
-        router.push("/");
-      }
+      toast.success("Login berhasil!", {
+        description: `Selamat datang ${userData.email}`,
+      });
+
+      // Redirect ke dashboard
+      router.push("/");
     } catch (err: any) {
       console.error("Login error:", err);
 
       // Handle specific error codes
       if (
         err.code === "auth/user-not-found" ||
-        err.code === "auth/wrong-password"
+        err.code === "auth/wrong-password" ||
+        err.code === "auth/invalid-credential"
       ) {
         setError("Email atau password salah!");
+        toast.error("Email atau password salah!");
       } else if (err.code === "auth/invalid-email") {
         setError("Format email tidak valid!");
-      } else if (err.code === "auth/invalid-credential") {
-        setError("Email atau password salah!");
+        toast.error("Format email tidak valid!");
       } else if (err.message === "User data not found in database") {
         setError("Data user tidak ditemukan. Silakan hubungi admin.");
+        toast.error("Data user tidak ditemukan");
       } else {
         setError("Login gagal. Coba lagi.");
+        toast.error("Login gagal");
       }
 
       setLoading(false);
@@ -55,193 +71,122 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-      <div className="w-full max-w-md px-6">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md space-y-4">
         {/* Header with Mode Toggle */}
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end">
           <ModeToggle />
         </div>
 
-        <div className="bg-card rounded-2xl shadow-2xl p-8 space-y-8 transform transition-all hover:scale-[1.01] border border-border">
-          {/* Header */}
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4 shadow-lg">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Selamat Datang
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Login ke Sistem Penitipan Barang
-            </p>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-start space-x-2">
-              <svg
-                className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground block">
-                Email
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-muted-foreground"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                    />
-                  </svg>
-                </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                  className="w-full pl-10 pr-4 py-3 border border-input bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-foreground"
-                  required
-                />
+        <Card className="border shadow-lg">
+          <CardHeader className="space-y-1">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                <LogIn className="h-8 w-8 text-white" />
               </div>
             </div>
+            <CardTitle className="text-2xl text-center">
+              Selamat Datang
+            </CardTitle>
+            <CardDescription className="text-center">
+              Login ke Sistem Penitipan Barang
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground block">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-muted-foreground"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="admin@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
                 </div>
-                <input
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  Password
+                </Label>
+                <Input
+                  id="password"
                   type="password"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 border border-input bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-foreground"
                   required
+                  autoComplete="current-password"
                 />
               </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Memproses...
+                  </>
+                ) : (
+                  "MASUK"
+                )}
+              </Button>
+            </form>
+
+            <Separator />
+
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Belum punya akun?{" "}
+                <Link
+                  href="/register"
+                  className="text-primary hover:text-primary/80 font-medium"
+                >
+                  Daftar di sini
+                </Link>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                <Link
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Lupa password?
+                </Link>
+              </p>
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Memproses...
-                </span>
-              ) : (
-                "MASUK"
-              )}
-            </button>
-          </form>
-
-          {/* Footer */}
-          <div className="pt-4 border-t border-border space-y-3">
-            <p className="text-center text-sm text-muted-foreground">
-              Belum punya akun?{" "}
-              <Link
-                href="/register"
-                className="text-primary hover:text-primary/80 font-medium"
-              >
-                Daftar di sini
-              </Link>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            <p className="text-xs text-center text-muted-foreground">
+              Gunakan email dan password yang sudah terdaftar untuk masuk ke
+              sistem
             </p>
-            <p className="text-center text-sm text-muted-foreground">
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Lupa password?
-              </a>
+            <p className="text-xs text-center text-muted-foreground">
+              © 2024 Penitipan Barang. All rights reserved.
             </p>
-          </div>
-        </div>
+          </CardFooter>
+        </Card>
 
-        {/* Additional Info */}
-        <div className="mt-6 bg-primary/10 border border-primary/20 rounded-lg p-4">
-          <p className="text-xs text-primary font-medium mb-2 text-center">
-            💡 Info Login
-          </p>
-          <p className="text-xs text-primary/80 text-center">
-            Gunakan email dan password yang sudah terdaftar untuk masuk ke
-            sistem
-          </p>
-        </div>
-
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          © 2024 Penitipan Barang. All rights reserved.
-        </p>
+        {/* Info Card */}
+        <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+          <Shield className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-sm text-blue-800 dark:text-blue-300">
+            💡 Sistem ini menggunakan autentikasi berbasis role (Admin/User)
+          </AlertDescription>
+        </Alert>
       </div>
     </div>
   );

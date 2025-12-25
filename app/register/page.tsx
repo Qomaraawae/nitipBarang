@@ -3,8 +3,22 @@ import { useState } from "react";
 import { register } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import toast, { Toaster } from "react-hot-toast";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { UserPlus, Mail, Lock, AlertCircle } from "lucide-react";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -35,15 +49,8 @@ export default function RegisterPage() {
       // Selalu register sebagai user
       const userData = await register(email, password, "user");
 
-      // Success toast with custom styling
       toast.success("Akun berhasil dibuat!", {
-        duration: 4000,
-        icon: "👤",
-        style: {
-          borderRadius: "10px",
-          background: "#10B981",
-          color: "#fff",
-        },
+        description: "Silakan login dengan akun Anda",
       });
 
       // Redirect after short delay
@@ -64,233 +71,109 @@ export default function RegisterPage() {
       }
 
       setError(errorMessage);
-      toast.error(errorMessage, {
-        duration: 4000,
-        style: {
-          borderRadius: "10px",
-          background: "#EF4444",
-          color: "#fff",
-        },
-      });
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <Toaster
-        position="top-center"
-        reverseOrder={false}
-        gutter={8}
-        toastOptions={{
-          // Default options
-          duration: 3000,
-          style: {
-            background: "#363636",
-            color: "#fff",
-          },
-          // Success
-          success: {
-            duration: 3000,
-            style: {
-              background: "#10B981",
-            },
-          },
-          // Error
-          error: {
-            duration: 4000,
-            style: {
-              background: "#EF4444",
-            },
-          },
-        }}
-      />
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md space-y-4">
+        {/* Header with Mode Toggle */}
+        <div className="flex justify-end">
+          <ModeToggle />
+        </div>
 
-      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-        <div className="w-full max-w-md px-6">
-          {/* Header with Mode Toggle */}
-          <div className="flex justify-end mb-4">
-            <ModeToggle />
-          </div>
-
-          <div className="bg-card rounded-2xl shadow-2xl p-8 space-y-8 transform transition-all hover:scale-[1.01] border border-border">
-            {/* Header */}
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4 shadow-lg">
-                <svg
-                  className="w-8 h-8 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                  />
-                </svg>
+        <Card className="border shadow-lg">
+          <CardHeader className="space-y-1">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                <UserPlus className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-foreground">
-                Daftar Akun Baru
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Buat akun untuk menggunakan sistem penitipan barang
-              </p>
             </div>
-
-            {/* Error Message */}
+            <CardTitle className="text-2xl text-center">
+              Daftar Akun Baru
+            </CardTitle>
+            <CardDescription className="text-center">
+              Buat akun untuk menggunakan sistem penitipan barang
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
             {error && (
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-start space-x-2">
-                <svg
-                  className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="text-sm text-destructive">{error}</p>
-              </div>
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
 
-            {/* Form */}
-            <form onSubmit={handleRegister} className="space-y-5">
+            <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground block">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
                   Email
-                </label>
+                </Label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                      />
-                    </svg>
-                  </div>
-                  <input
+                  <Input
+                    id="email"
                     type="email"
+                    placeholder="user@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="user@example.com"
-                    className="w-full pl-10 pr-4 py-3 border border-input bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-foreground"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground block">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
                   Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                  </div>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Minimal 6 karakter"
-                    className="w-full pl-10 pr-4 py-3 border border-input bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-foreground"
-                    required
-                  />
-                </div>
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Minimal 6 karakter"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground block">
+                <Label
+                  htmlFor="confirmPassword"
+                  className="flex items-center gap-2"
+                >
+                  <Lock className="h-4 w-4" />
                   Konfirmasi Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                  </div>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Ulangi password"
-                    className="w-full pl-10 pr-4 py-3 border border-input bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-foreground"
-                    required
-                  />
-                </div>
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Ulangi password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
               </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              >
+
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     Memproses...
-                  </span>
+                  </>
                 ) : (
                   "DAFTAR AKUN"
                 )}
-              </button>
+              </Button>
             </form>
 
-            {/* Footer */}
-            <div className="pt-4 border-t border-border">
-              <p className="text-center text-sm text-muted-foreground">
+            <Separator />
+
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground">
                 Sudah punya akun?{" "}
                 <Link
                   href="/login"
@@ -300,14 +183,25 @@ export default function RegisterPage() {
                 </Link>
               </p>
             </div>
-          </div>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            <p className="text-xs text-center text-muted-foreground">
+              Dengan mendaftar, Anda menyetujui syarat dan ketentuan kami.
+            </p>
+            <p className="text-xs text-center text-muted-foreground">
+              © 2024 Penitipan Barang. All rights reserved.
+            </p>
+          </CardFooter>
+        </Card>
 
-          {/* Additional Info */}
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            © 2024 Penitipan Barang. All rights reserved.
-          </p>
-        </div>
+        {/* Info Card */}
+        <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+          <AlertDescription className="text-sm text-blue-800 dark:text-blue-300">
+            💡 Akun yang dibuat otomatis akan menjadi pengguna biasa (User).
+            Hubungi admin untuk mendapatkan akses admin.
+          </AlertDescription>
+        </Alert>
       </div>
-    </>
+    </div>
   );
 }

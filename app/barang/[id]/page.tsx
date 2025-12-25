@@ -8,6 +8,38 @@ import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { ModeToggle } from "@/components/mode-toggle";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import {
+  ArrowLeft,
+  Package,
+  User,
+  Phone,
+  Calendar,
+  Hash,
+  Copy,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  MessageCircle,
+} from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -27,7 +59,6 @@ interface Barang {
 export default function DetailBarang({ params }: PageProps) {
   const [barang, setBarang] = useState<Barang | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showCopyNotif, setShowCopyNotif] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const { user, role } = useAuth();
@@ -63,16 +94,16 @@ export default function DetailBarang({ params }: PageProps) {
   }, [params]);
 
   const handleCopyKode = async () => {
-    try {
-      await navigator.clipboard.writeText(barang!.kode_ambil);
-      setShowCopyNotif(true);
+    if (!barang) return;
 
-      setTimeout(() => {
-        setShowCopyNotif(false);
-      }, 3000);
+    try {
+      await navigator.clipboard.writeText(barang.kode_ambil);
+      toast.success("Kode berhasil disalin!", {
+        description: `Kode ${barang.kode_ambil} telah disalin ke clipboard`,
+      });
     } catch (err) {
       console.error("Failed to copy:", err);
-      alert("Gagal menyalin kode");
+      toast.error("Gagal menyalin kode");
     }
   };
 
@@ -94,6 +125,10 @@ export default function DetailBarang({ params }: PageProps) {
     setZoomLevel((prev) => Math.max(prev - 0.5, 1));
   };
 
+  const handleResetZoom = () => {
+    setZoomLevel(1);
+  };
+
   useEffect(() => {
     const handleEscapeKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && showImageModal) {
@@ -112,7 +147,7 @@ export default function DetailBarang({ params }: PageProps) {
         handleZoomOut();
       } else if (e.key === "0") {
         e.preventDefault();
-        setZoomLevel(1);
+        handleResetZoom();
       }
     };
 
@@ -142,490 +177,310 @@ export default function DetailBarang({ params }: PageProps) {
 
   if (!barang || !user) return null;
 
-  const isAdmin = role === "admin"; // Cek user or admin
+  const isAdmin = role === "admin";
+  const isActive = barang.status === "dititipkan";
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Link
-              href="/"
-              className="inline-flex items-center space-x-2 text-muted-foreground hover:text-foreground group transition-colors"
-            >
-              <svg
-                className="w-5 h-5 group-hover:-translate-x-1 transition-transform"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              <span className="font-medium">Kembali ke Dashboard</span>
-            </Link>
-            <ModeToggle />
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg
-                className="w-7 h-7 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
+    <>
+      <div className="min-h-screen bg-background text-foreground py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <Link href="/">
+                <Button variant="ghost" className="gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Kembali ke Dashboard
+                </Button>
+              </Link>
+              <ModeToggle />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                Detail Barang
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Informasi lengkap barang titipan
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-8 py-4">
-            <div className="flex items-center justify-between">
-              <span className="text-white font-semibold">Status</span>
-              <span
-                className={`px-4 py-2 rounded-full font-bold text-sm ${
-                  barang.status === "dititipkan"
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-500 text-white"
-                }`}
-              >
-                {barang.status === "dititipkan" ? "✓ AKTIF" : "DIAMBIL"}
-              </span>
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Package className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">
+                  Detail Barang
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Informasi lengkap barang titipan
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="p-8">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                    Kode Ambil
-                  </label>
-                  <div className="flex items-center space-x-3">
-                    <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                      {barang.kode_ambil}
-                    </span>
-                    <button
-                      onClick={handleCopyKode}
-                      className="group p-2 hover:bg-primary/10 rounded-lg transition-all duration-200 relative"
-                      title="Copy kode"
-                    >
-                      <svg
-                        className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </button>
+          {/* Main Content */}
+          <div className="space-y-6">
+            {/* Status Card */}
+            <Card className="border-l-4 border-l-blue-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Status
+                    </p>
+                    <p className="text-2xl font-bold">{barang.nama_pemilik}</p>
                   </div>
+                  <Badge
+                    variant={isActive ? "default" : "secondary"}
+                    className={
+                      isActive
+                        ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300"
+                        : ""
+                    }
+                  >
+                    {isActive ? "✓ AKTIF" : "DIAMBIL"}
+                  </Badge>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="bg-secondary rounded-xl p-6 space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <svg
-                      className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Nama Pemilik
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Left Column - Info */}
+              <div className="space-y-6">
+                {/* Kode Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <Hash className="h-5 w-5" />
+                        Kode Pengambilan
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCopyKode}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center">
+                      <p className="text-4xl font-bold text-blue-600 font-mono tracking-wider">
+                        {barang.kode_ambil}
                       </p>
-                      <p className="text-lg font-bold text-foreground">
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Kode ini diperlukan untuk mengambil barang
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Info Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Informasi Barang</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium">
+                          Nama Pemilik
+                        </span>
+                      </div>
+                      <p className="text-lg font-medium">
                         {barang.nama_pemilik}
                       </p>
                     </div>
-                  </div>
 
-                  <div className="flex items-start space-x-3">
-                    <svg
-                      className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                      />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        No. WhatsApp
-                      </p>
-                      <p className="text-lg font-bold text-foreground">
-                        {barang.no_hp}
-                      </p>
-                    </div>
-                  </div>
+                    <Separator />
 
-                  <div className="flex items-start space-x-3">
-                    <svg
-                      className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
-                      />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Nomor Slot
-                      </p>
-                      <p className="text-lg font-bold text-foreground">
-                        Slot {barang.slot}
-                      </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium">
+                          Nomor WhatsApp
+                        </span>
+                      </div>
+                      <p className="text-lg font-medium">{barang.no_hp}</p>
                     </div>
-                  </div>
 
-                  <div className="flex items-start space-x-3">
-                    <svg
-                      className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Waktu Masuk
-                      </p>
-                      <p className="text-lg font-bold text-foreground">
-                        {barang.waktu_masuk?.toDate().toLocaleString("id-ID", {
-                          dateStyle: "full",
-                          timeStyle: "short",
-                        })}
-                      </p>
+                    <Separator />
+
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Hash className="h-4 w-4 text-purple-600" />
+                        <span className="text-sm font-medium">Nomor Slot</span>
+                      </div>
+                      <p className="text-lg font-medium">Slot {barang.slot}</p>
                     </div>
-                  </div>
-                </div>
+
+                    {barang.waktu_masuk && (
+                      <>
+                        <Separator />
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-indigo-600" />
+                            <span className="text-sm font-medium">
+                              Waktu Masuk
+                            </span>
+                          </div>
+                          <p className="text-sm font-medium">
+                            {barang.waktu_masuk
+                              .toDate()
+                              .toLocaleString("id-ID", {
+                                dateStyle: "full",
+                                timeStyle: "short",
+                              })}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                  Foto Barang
-                </label>
-                {barang.foto_url ? (
-                  <div className="group relative rounded-xl overflow-hidden shadow-lg border-2 border-border aspect-square">
-                    <button
-                      onClick={openImageModal}
-                      className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300 z-10 cursor-zoom-in"
-                      aria-label="Preview foto barang"
-                    >
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="bg-card/90 backdrop-blur-sm p-3 rounded-full shadow-lg transform group-hover:scale-110 transition-transform duration-300">
-                          <svg
-                            className="w-8 h-8 text-foreground"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    </button>
-                    <Image
-                      src={barang.foto_url}
-                      alt="Foto barang"
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      priority
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center bg-secondary rounded-xl border-2 border-dashed border-border aspect-square">
-                    <div className="text-center">
-                      <svg
-                        className="w-16 h-16 text-muted-foreground mx-auto mb-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+              {/* Right Column - Foto */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Foto Barang</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {barang.foto_url ? (
+                    <div className="relative">
+                      <div
+                        className="relative rounded-lg overflow-hidden border cursor-zoom-in aspect-square"
+                        onClick={openImageModal}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        <Image
+                          src={barang.foto_url}
+                          alt="Foto barang"
+                          fill
+                          className="object-cover hover:scale-105 transition-transform duration-300"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          priority
                         />
-                      </svg>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm"
+                        onClick={openImageModal}
+                      >
+                        <ZoomIn className="h-4 w-4 mr-2" />
+                        Preview
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-lg">
+                      <Package className="h-16 w-16 text-muted-foreground mb-4" />
                       <p className="text-muted-foreground font-medium">
                         Tidak ada foto
                       </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Foto barang tidak tersedia
+                      </p>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
+
+            {/* WhatsApp Button (Admin only) */}
+            {isAdmin && isActive && (
+              <Button
+                className="w-full gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                onClick={() => {
+                  let phone = barang.no_hp.replace(/\D/g, "");
+                  if (phone.startsWith("0")) phone = "62" + phone.substring(1);
+                  if (!phone.startsWith("62")) phone = "62" + phone;
+
+                  const message = encodeURIComponent(
+                    `Halo ${
+                      barang.nama_pemilik
+                    }!\n\nBarang kamu sudah aman tersimpan nih!\n\nLokasi: Slot *${
+                      barang.slot
+                    }*\nKode Ambil: *${
+                      barang.kode_ambil
+                    }*\n\nJangan lupa simpan kode ini ya! Kamu butuh kode ini untuk ambil barang nanti.\n\nCek detail: ${
+                      typeof window !== "undefined" ? window.location.href : ""
+                    }`
+                  );
+
+                  window.open(
+                    `https://wa.me/${phone}?text=${message}`,
+                    "_blank"
+                  );
+                }}
+              >
+                <MessageCircle className="h-5 w-5" />
+                Hubungi via WhatsApp
+              </Button>
+            )}
           </div>
         </div>
-
-        {/* ✅ Hanya tampilkan tombol WhatsApp untuk admin */}
-        {isAdmin && barang.status === "dititipkan" && (
-          <div className="mt-6">
-            <a
-              href={(() => {
-                let phone = barang.no_hp.replace(/\D/g, "");
-                if (phone.startsWith("0")) phone = "62" + phone.substring(1);
-                if (!phone.startsWith("62")) phone = "62" + phone;
-
-                const message = encodeURIComponent(
-                  `Halo ${barang.nama_pemilik}!
-
-Barang kamu sudah aman tersimpan nih!
-
-Lokasi: Slot *${barang.slot}*
-Kode Ambil: *${barang.kode_ambil}*
-
-Jangan lupa simpan kode ini ya! Kamu butuh kode ini untuk ambil barang nanti.
-
-Cek detail: ${typeof window !== "undefined" ? window.location.href : ""}`
-                );
-
-                return `https://wa.me/${phone}?text=${message}`;
-              })()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-200 flex items-center justify-center space-x-2"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-              </svg>
-              <span>Hubungi via WhatsApp</span>
-            </a>
-          </div>
-        )}
-
-        {showImageModal && barang.foto_url && (
-          <div className="fixed inset-0 z-50">
-            <div
-              className="absolute inset-0 bg-black/95 backdrop-blur-sm animate-fadeIn"
-              onClick={closeImageModal}
-            ></div>
-
-            <div className="relative h-full flex items-center justify-center p-4">
-              <button
-                onClick={closeImageModal}
-                className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full transition-all duration-300 hover:scale-110"
-                aria-label="Tutup preview"
-              >
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-
-              <div className="relative w-full max-w-6xl max-h-[90vh] animate-scaleIn overflow-hidden rounded-xl">
-                <div className="relative w-full h-full flex items-center justify-center bg-black">
-                  <img
-                    src={barang.foto_url}
-                    alt="Preview foto barang"
-                    className="max-w-full max-h-full object-contain"
-                    style={{
-                      transform: `scale(${zoomLevel})`,
-                      transition: "transform 0.2s ease",
-                    }}
-                  />
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 sm:p-6">
-                  <p className="text-white font-medium text-sm sm:text-base">
-                    Foto barang milik:{" "}
-                    <span className="font-bold">{barang.nama_pemilik}</span>
-                  </p>
-                  <p className="text-gray-300 text-xs sm:text-sm mt-1">
-                    Slot: {barang.slot} • Kode: {barang.kode_ambil}
-                  </p>
-                </div>
-
-                <div className="absolute bottom-4 right-4 flex items-center space-x-2 bg-black/50 backdrop-blur-sm rounded-lg p-1">
-                  <button
-                    className="p-2 hover:bg-white/20 rounded-lg transition-all duration-300 disabled:opacity-30"
-                    onClick={handleZoomOut}
-                    disabled={zoomLevel <= 1}
-                    aria-label="Zoom out"
-                  >
-                    <svg
-                      className="w-5 h-5 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"
-                      />
-                    </svg>
-                  </button>
-
-                  <span className="px-2 text-white text-sm font-medium min-w-[60px] text-center">
-                    {Math.round(zoomLevel * 100)}%
-                  </span>
-
-                  <button
-                    className="p-2 hover:bg-white/20 rounded-lg transition-all duration-300 disabled:opacity-30"
-                    onClick={handleZoomIn}
-                    disabled={zoomLevel >= 3}
-                    aria-label="Zoom in"
-                  >
-                    <svg
-                      className="w-5 h-5 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                      />
-                    </svg>
-                  </button>
-
-                  {zoomLevel > 1 && (
-                    <button
-                      className="ml-2 px-3 py-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded text-white text-sm font-medium transition-all duration-300"
-                      onClick={() => setZoomLevel(1)}
-                      aria-label="Reset zoom"
-                    >
-                      Reset
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showCopyNotif && (
-          <div className="fixed top-4 right-4 z-50 animate-slideInRight">
-            <div className="bg-card rounded-xl shadow-2xl border border-green-200 dark:border-green-800 overflow-hidden max-w-sm">
-              <div className="flex items-center p-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-6 h-6 text-green-600 dark:text-green-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <div className="ml-3 flex-1">
-                  <p className="text-sm font-semibold text-foreground">
-                    Berhasil disalin!
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Kode{" "}
-                    <span className="font-mono font-bold text-foreground">
-                      {barang.kode_ambil}
-                    </span>{" "}
-                    sudah tersalin
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowCopyNotif(false)}
-                  className="ml-4 flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <div className="h-1 bg-secondary">
-                <div
-                  className="h-full bg-green-500 animate-shrink"
-                  style={{ animationDuration: "3s" }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+
+      {/* Image Modal */}
+      <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>Preview Foto Barang</DialogTitle>
+            <DialogDescription>
+              {barang.nama_pemilik} • Slot {barang.slot} • Kode{" "}
+              {barang.kode_ambil}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative flex-1 min-h-[60vh] bg-black">
+            {barang.foto_url && (
+              <div className="relative w-full h-full flex items-center justify-center p-6">
+                <img
+                  src={barang.foto_url}
+                  alt="Preview foto barang"
+                  className="max-w-full max-h-full object-contain"
+                  style={{
+                    transform: `scale(${zoomLevel})`,
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Zoom Controls */}
+            <div className="absolute bottom-4 right-4 flex items-center gap-2 bg-black/50 backdrop-blur-sm rounded-lg p-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleZoomOut}
+                disabled={zoomLevel <= 1}
+                className="h-8 w-8 text-white hover:bg-white/20"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+
+              <span className="px-2 text-white text-sm font-medium min-w-[60px] text-center">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= 3}
+                className="h-8 w-8 text-white hover:bg-white/20"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+
+              {zoomLevel > 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleResetZoom}
+                  className="h-8 w-8 text-white hover:bg-white/20 ml-2"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
