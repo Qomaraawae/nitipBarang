@@ -40,6 +40,7 @@ import {
   Camera,
   CheckCircle,
   Info,
+  MessageCircle,
 } from "lucide-react";
 import { logger } from "@/lib/logger";
 
@@ -446,7 +447,7 @@ export default function TitipPage() {
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
@@ -456,41 +457,39 @@ export default function TitipPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <Alert>
-              <AlertDescription>
+            <Alert className="bg-green-50 border-green-100">
+              <AlertDescription className="text-green-800">
                 Barang <strong>{successData.nama}</strong> berhasil dititipkan!
               </AlertDescription>
             </Alert>
 
             <div className="grid grid-cols-2 gap-4">
-              <Card>
+              <Card className="bg-white border border-gray-200">
                 <CardContent className="pt-6">
-                  <p className="text-center text-2xl font-bold text-purple-600">
+                  <p className="text-center text-2xl font-bold text-purple-700">
                     {successData.slot}
                   </p>
-                  <p className="text-center text-sm text-muted-foreground">
-                    Slot
-                  </p>
+                  <p className="text-center text-sm text-gray-600">Slot</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="bg-white border border-gray-200">
                 <CardContent className="pt-6">
-                  <p className="text-center text-xl font-bold text-blue-600 tracking-wider">
+                  <p className="text-center text-xl font-bold text-blue-700 tracking-wider">
                     {successData.kode}
                   </p>
-                  <p className="text-center text-sm text-muted-foreground">
+                  <p className="text-center text-sm text-gray-600">
                     Kode Ambil
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="text-sm text-muted-foreground space-y-2">
+            <div className="text-sm text-gray-700 space-y-2">
               <div className="flex justify-between">
                 <span>Pemilik:</span>
                 <span className="font-medium">{successData.nama}</span>
               </div>
-              <Separator />
+              <Separator className="bg-gray-200" />
               <div className="flex justify-between">
                 <span>Tanggal:</span>
                 <span className="font-medium">
@@ -510,6 +509,7 @@ export default function TitipPage() {
                 setSlot(null);
                 setFotoUrl(undefined);
               }}
+              className="border-gray-300"
             >
               Titip Lagi
             </Button>

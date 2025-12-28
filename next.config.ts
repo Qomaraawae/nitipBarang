@@ -3,15 +3,21 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   
-  // Image optimization config
+  // Image optimization config - optimasi lebih lanjut
   images: {
     domains: ['res.cloudinary.com'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+        pathname: '**',
       },
     ],
+    // Format modern untuk performa lebih baik
+    formats: ['image/avif', 'image/webp'],
+    // Device sizes untuk responsive images
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
   // Remove console logs in production
@@ -21,7 +27,7 @@ const nextConfig: NextConfig = {
     } : false,
   },
 
-  // Security headers
+  // Security headers dengan performance
   async headers() {
     return [
       {
@@ -51,25 +57,33 @@ const nextConfig: NextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
           },
+          // Header untuk performance
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, stale-while-revalidate=86400'
+          },
         ],
       },
+      // Cache khusus untuk static assets
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      {
+        source: '/fonts/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
     ];
-  },
-
-  // Konfigurasi Turbopack (wajib untuk Next.js 16+)
-  turbopack: {
-    // Kosongkan jika tidak butuh konfigurasi khusus
-    // Atau tambahkan konfigurasi jika diperlukan:
-    
-    // Untuk mengurangi logs HMR yang berlebihan:
-    // logLevel: 'error',
-    
-    // Jika perlu resolve alias:
-    // resolveAlias: {
-    //   // Contoh:
-    //   // '@components': './components',
-    //   // '@utils': './utils',
-    // },
   },
 };
 

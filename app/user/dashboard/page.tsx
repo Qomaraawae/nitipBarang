@@ -17,7 +17,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Package,
   PackageCheck,
@@ -28,21 +27,29 @@ import {
   Plus,
   Search,
   History,
+  Shield,
+  Calendar,
+  HelpCircle,
+  ChevronRight,
+  CheckCircle2,
+  XCircle,
+  MoreVertical,
 } from "lucide-react";
 import { logger, maskEmail, maskUid } from "@/lib/logger";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 export default function Dashboard() {
   const { user, role, userData, loading: authLoading } = useAuth();
   const { barang, loading: dataLoading } = useBarangRealTime();
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   // LOG USER LOGIN SECURELY
   useEffect(() => {
     if (user && !authLoading) {
-      // Gunakan logger.auth.login yang sudah aman
       logger.auth.login(user.email || "", role || "user");
 
-      // Untuk debugging terbatas, gunakan logger.log dengan data yang dimask
       if (
         process.env.NODE_ENV === "development" &&
         process.env.NEXT_PUBLIC_DEBUG_USER === "true"
@@ -65,7 +72,6 @@ export default function Dashboard() {
     }
   };
 
-  // Get user name from email (before @)
   const getUserName = (): string => {
     if (!user?.email) return "User";
     return user.email.split("@")[0];
@@ -89,7 +95,6 @@ export default function Dashboard() {
   const isAdmin = role === "admin";
   const userBarang = barang.filter((b: Barang) => b.user_id === user.uid);
 
-  // Calculate stats
   const totalSlots = 50;
   const occupiedSlots = barang.length;
   const availableSlots = totalSlots - occupiedSlots;
@@ -97,101 +102,196 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo & Title */}
+      {/* ==================== HEADER ==================== */}
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Left: Logo & Brand */}
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
-                <Package className="h-6 w-6 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Package className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">Nitip Barang</h1>
+                <h1 className="text-xl font-bold text-foreground">
+                  NitipBarang
+                </h1>
                 <p className="text-xs text-muted-foreground">
-                  Sistem Penitipan Barang
+                  Sistem Penitipan
                 </p>
               </div>
             </div>
 
-            {/* Right Section */}
-            <div className="flex items-center gap-4">
+            {/* Right: Actions */}
+            <div className="flex items-center gap-3">
               <ModeToggle />
 
-              {/* User Info (Desktop) */}
-              <div className="hidden md:flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.photoURL || ""} />
-                  <AvatarFallback>
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-right">
-                  <p className="text-sm font-medium truncate max-w-[180px]">
-                    {user.email}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={isAdmin ? "destructive" : "outline"}
-                      className="text-xs"
-                    >
-                      {isAdmin ? "Admin" : "User"}
-                    </Badge>
-                  </div>
-                </div>
+              {/* Profile Dropdown untuk desktop */}
+              <div className="hidden md:block relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.photoURL || ""} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100">
+                      <User className="h-4 w-4 text-blue-600" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+                {/* Dropdown Menu */}
+                {showProfileDropdown && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowProfileDropdown(false)}
+                    />
+                    <div className="absolute right-0 top-12 w-64 z-50">
+                      {/* MODIFIED: Changed from bg-background/80 to bg-white for non-transparent */}
+                      <div className="bg-white border border-border/50 rounded-lg shadow-xl shadow-black/10 animate-in slide-in-from-top-2">
+                        <div className="p-4 border-b border-border/50">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-12 w-12 ring-2 ring-background/50">
+                              <AvatarImage src={user.photoURL || ""} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-indigo-600/20">
+                                <User className="h-6 w-6 text-blue-500" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-foreground text-sm truncate">
+                                {user.email}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                {/* MODIFIED: Changed badge background to solid */}
+                                <Badge
+                                  variant={isAdmin ? "default" : "secondary"}
+                                  className="text-xs bg-blue-100 text-blue-800 border-none"
+                                >
+                                  {isAdmin ? "Admin" : "User"}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {getUserName()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-2">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            onClick={handleLogout}
+                          >
+                            <LogOut className="h-4 w-4" />
+                            <span className="font-medium">Keluar</span>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* Logout Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleLogout}
-                className="hover:bg-destructive/10 hover:text-destructive"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
+              {/* Profile Dropdown untuk mobile */}
+              <div className="md:hidden relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.photoURL || ""} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100">
+                      <User className="h-4 w-4 text-blue-600" />
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+
+                {/* Dropdown Menu Mobile */}
+                {showProfileDropdown && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowProfileDropdown(false)}
+                    />
+                    <div className="absolute right-4 top-12 w-64 z-50">
+                      {/* MODIFIED: Changed from bg-background/80 to bg-white for non-transparent */}
+                      <div className="bg-white border border-border/50 rounded-lg shadow-xl shadow-black/10 animate-in slide-in-from-top-2">
+                        <div className="p-4 border-b border-border/50">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-12 w-12 ring-2 ring-background/50">
+                              <AvatarImage src={user.photoURL || ""} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-indigo-600/20">
+                                <User className="h-6 w-6 text-blue-500" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-foreground text-sm truncate">
+                                {user.email}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                {/* MODIFIED: Changed badge background to solid */}
+                                <Badge
+                                  variant={isAdmin ? "default" : "secondary"}
+                                  className="text-xs bg-blue-100 text-blue-800 border-none"
+                                >
+                                  {isAdmin ? "Admin" : "User"}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {getUserName()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-2">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            onClick={handleLogout}
+                          >
+                            <LogOut className="h-4 w-4" />
+                            <span className="font-medium">Keluar</span>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* User Info (Mobile) */}
-          <div className="md:hidden mt-4 pt-4 border-t">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={user.photoURL || ""} />
-                  <AvatarFallback>
-                    <User className="h-5 w-5" />
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium truncate">{user.email}</p>
-                  <Badge
-                    variant={isAdmin ? "destructive" : "outline"}
-                    className="text-xs"
-                  >
-                    {isAdmin ? "Admin" : "User"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Mobile Navigation - Hanya untuk admin */}
+          {isAdmin && <div className="lg:hidden py-3 border-t"></div>}
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
+      {/* ==================== MAIN CONTENT ==================== */}
+      <div className="container mx-auto px-4 lg:px-6 py-6">
         {/* Welcome Section */}
         {!isAdmin && (
-          <Card className="mb-6 border-blue-200 dark:border-blue-800">
+          <Card className="mb-6 border shadow-sm">
             <CardContent className="pt-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">
-                  Hai {getUserName()}, selamat datang! 👋
-                </h2>
-                <p className="text-muted-foreground">
-                  Anda bisa menitipkan barang dengan menekan tombol "Titip
-                  Barang" di bawah ini.
-                </p>
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2 text-foreground">
+                    Hai {getUserName()}, selamat datang! 👋
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Anda bisa menitipkan barang dengan menekan tombol "Titip
+                    Barang" di bawah ini.
+                  </p>
+                </div>
+                <Link href="/titip">
+                  <Button size="lg" className="gap-2">
+                    <Plus className="h-5 w-5" />
+                    Titip Barang
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -201,15 +301,17 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {isAdmin ? (
             <>
-              <Card>
+              <Card className="border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                  <CardTitle className="text-sm font-medium text-foreground">
                     Total Barang
                   </CardTitle>
-                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <div className="p-2 bg-muted rounded-lg">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-2xl font-bold text-foreground">
                     {dataLoading ? "..." : barang.length}
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -218,81 +320,102 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                  <CardTitle className="text-sm font-medium text-foreground">
                     Slot Terisi
                   </CardTitle>
-                  <PackageCheck className="h-4 w-4 text-muted-foreground" />
+                  <div className="p-2 bg-muted rounded-lg">
+                    <PackageCheck className="h-4 w-4 text-muted-foreground" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{occupiedSlots}</div>
-                  <Progress value={slotUsagePercentage} className="mt-2" />
+                  <div className="text-2xl font-bold text-foreground">
+                    {occupiedSlots}
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    <Progress value={slotUsagePercentage} className="h-2" />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Kapasitas</span>
+                      <span>{slotUsagePercentage}%</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                  <CardTitle className="text-sm font-medium text-foreground">
                     Slot Kosong
                   </CardTitle>
-                  <Home className="h-4 w-4 text-muted-foreground" />
+                  <div className="p-2 bg-muted rounded-lg">
+                    <Home className="h-4 w-4 text-muted-foreground" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{availableSlots}</div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {availableSlots}
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Dari 50 slot total
+                    Dari {totalSlots} slot total
                   </p>
+                  {availableSlots <= 10 && (
+                    <Badge variant="outline" className="mt-2">
+                      ⚠️ Kapasitas hampir penuh
+                    </Badge>
+                  )}
                 </CardContent>
               </Card>
             </>
-          ) : (
-            <Card className="md:col-span-3">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold mb-2">
-                    Mulai Titip Barang Anda
-                  </h2>
-                  <p className="text-muted-foreground mb-4">
-                    Klik tombol di bawah untuk menitipkan barang
-                  </p>
-                  <Link href="/titip">
-                    <Button size="lg" className="gap-2">
-                      <Plus className="h-4 w-4" />
-                      Titip Barang
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          ) : null}
         </div>
 
-        {/* Action Buttons - CENTERED dengan ukuran lebih lebar */}
+        {/* Action Buttons for Admin */}
         {isAdmin && (
-          <div className="flex justify-center mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-5xl">
-              <Link href="/titip" className="flex justify-center">
-                <Button className="w-full h-auto py-8 flex-col gap-3 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[140px]">
-                  <Plus className="h-10 w-10 mb-2" />
-                  <span className="font-bold text-xl">Titip Barang</span>
-                  <span className="text-sm opacity-90">Tambah barang baru</span>
+          <div className="mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Link href="/titip">
+                <Button
+                  variant="outline"
+                  className="w-full h-auto py-6 flex-col gap-3"
+                >
+                  <div className="p-3 bg-muted rounded-full">
+                    <Plus className="h-8 w-8" />
+                  </div>
+                  <span className="font-bold text-lg">Titip Barang</span>
+                  <span className="text-sm text-muted-foreground">
+                    Tambah barang baru
+                  </span>
                 </Button>
               </Link>
 
-              <Link href="/ambil" className="flex justify-center">
-                <Button className="w-full h-auto py-8 flex-col gap-3 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[140px]">
-                  <Search className="h-10 w-10 mb-2" />
-                  <span className="font-bold text-xl">Ambil Barang</span>
-                  <span className="text-sm opacity-90">Proses pengambilan</span>
+              <Link href="/ambil">
+                <Button
+                  variant="outline"
+                  className="w-full h-auto py-6 flex-col gap-3"
+                >
+                  <div className="p-3 bg-muted rounded-full">
+                    <Search className="h-8 w-8" />
+                  </div>
+                  <span className="font-bold text-lg">Ambil Barang</span>
+                  <span className="text-sm text-muted-foreground">
+                    Proses pengambilan
+                  </span>
                 </Button>
               </Link>
 
-              <Link href="/histori" className="flex justify-center">
-                <Button className="w-full h-auto py-8 flex-col gap-3 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[140px]">
-                  <History className="h-10 w-10 mb-2" />
-                  <span className="font-bold text-xl">Histori</span>
-                  <span className="text-sm opacity-90">Riwayat aktivitas</span>
+              <Link href="/histori">
+                <Button
+                  variant="outline"
+                  className="w-full h-auto py-6 flex-col gap-3"
+                >
+                  <div className="p-3 bg-muted rounded-full">
+                    <History className="h-8 w-8" />
+                  </div>
+                  <span className="font-bold text-lg">Histori</span>
+                  <span className="text-sm text-muted-foreground">
+                    Riwayat aktivitas
+                  </span>
                 </Button>
               </Link>
             </div>
@@ -300,109 +423,107 @@ export default function Dashboard() {
         )}
 
         {/* Barang List */}
-        <Card>
+        <Card className="border">
           <CardHeader>
-            <CardTitle>
-              {isAdmin ? "Semua Barang Dititipkan" : "Barang Saya"}
-            </CardTitle>
-            <CardDescription>
-              {isAdmin
-                ? `${barang.length} items`
-                : `${userBarang.length} items`}
-            </CardDescription>
+            <div>
+              <CardTitle className="text-foreground">
+                {isAdmin ? "Semua Barang Dititipkan" : "Barang Saya"}
+              </CardTitle>
+              <CardDescription>
+                {isAdmin
+                  ? `${barang.length} item${
+                      barang.length !== 1 ? "s" : ""
+                    } ditemukan`
+                  : `${userBarang.length} barang Anda`}
+              </CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="all" className="w-full">
-              <TabsContent value="all" className="mt-4">
-                {dataLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {(isAdmin ? barang : userBarang).map((b: Barang) => (
-                      <Card key={b.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
-                                {b.slot}
-                              </div>
-                              <div>
-                                <p className="font-medium">{b.nama_pemilik}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  Kode: {b.kode_ambil}
-                                </p>
-                              </div>
+            {dataLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {(isAdmin ? barang : userBarang).map((b: Barang) => (
+                  <Link
+                    key={b.id}
+                    href={`/barang/${b.kode_ambil}`}
+                    className="block"
+                  >
+                    <Card className="border hover:bg-muted/50 transition-colors hover:shadow-md cursor-pointer">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-4 flex-1 min-w-0">
+                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                              {b.slot}
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant={
-                                  b.status === "dititipkan"
-                                    ? "default"
-                                    : "secondary"
-                                }
-                              >
-                                {b.status === "dititipkan"
-                                  ? "Aktif"
-                                  : "Diambil"}
-                              </Badge>
-                              <Link href={`/barang/${b.kode_ambil}`}>
-                                <Button variant="ghost" size="sm">
-                                  Detail
-                                </Button>
-                              </Link>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-foreground text-base mb-1 truncate">
+                                {b.nama_pemilik}
+                              </p>
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    Kode:
+                                  </span>
+                                  <span className="text-xs font-mono font-bold bg-muted px-1.5 py-0.5 rounded">
+                                    {b.kode_ambil}
+                                  </span>
+                                </div>
+                                <div className="hidden sm:block text-xs text-muted-foreground">
+                                  •
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    Slot:
+                                  </span>
+                                  <span className="text-xs font-medium">
+                                    {b.slot}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="active">
-                {dataLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {(isAdmin ? barang : userBarang)
-                      .filter((b: Barang) => b.status === "dititipkan")
-                      .map((b: Barang) => (
-                        <Card key={b.id}>
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
-                                  {b.slot}
-                                </div>
-                                <div>
-                                  <p className="font-medium">
-                                    {b.nama_pemilik}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    Kode: {b.kode_ambil}
-                                  </p>
-                                </div>
-                              </div>
-                              <Link href={`/barang/${b.kode_ambil}`}>
-                                <Button variant="ghost" size="sm">
-                                  Detail
-                                </Button>
-                              </Link>
+                          <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                            <Badge
+                              variant={
+                                b.status === "dititipkan"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className="gap-1 whitespace-nowrap"
+                              onClick={(e) => e.stopPropagation()} // Mencegah klik badge membuka link
+                            >
+                              {b.status === "dititipkan" ? (
+                                <>
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Aktif
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="h-3 w-3" />
+                                  Diambil
+                                </>
+                              )}
+                            </Badge>
+                            <div
+                              className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                              onClick={(e) => e.stopPropagation()} // Mencegah klik icon membuka link
+                            >
+                              <ChevronRight className="h-3.5 w-3.5" />
                             </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 }

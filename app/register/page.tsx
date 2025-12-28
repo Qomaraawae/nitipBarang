@@ -199,14 +199,6 @@ export default function RegisterPage() {
             </p>
           </CardFooter>
         </Card>
-
-        {/* Info Card */}
-        <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
-          <AlertDescription className="text-sm text-blue-800 dark:text-blue-300">
-            💡 Akun yang dibuat otomatis akan menjadi pengguna biasa (User).
-            Hubungi admin untuk mendapatkan akses admin.
-          </AlertDescription>
-        </Alert>
       </div>
     </div>
   );

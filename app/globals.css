@@ -70,34 +70,106 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* Custom Animations */
+/* ========== OPTIMASI PERFORMANCE ========== */
+
+/* 1. Reduce motion untuk aksesibilitas */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 2. Focus styles untuk aksesibilitas */
+*:focus-visible {
+  outline: 2px solid oklch(0.488 0.243 264.376);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* 3. Text rendering optimization */
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern", "liga", "clig", "calt";
+}
+
+/* 4. Optimasi untuk images */
+img {
+  content-visibility: auto;
+}
+
+/* 5. Smooth scrolling dengan fallback */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* 6. High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --primary: oklch(0.1 0 0);
+    --foreground: oklch(0 0 0);
+  }
+  
+  .dark {
+    --primary: oklch(0.95 0 0);
+    --foreground: oklch(1 0 0);
+  }
+}
+
+/* 7. Print styles */
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+  
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* 8. Touch device optimization */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ========== ANIMASI OPTIMIZED ========== */
 @keyframes theme-switch {
   0% {
     opacity: 0.7;
     transform: scale(0.95);
   }
-  50% {
-    opacity: 0.9;
-    transform: scale(1.02);
-  }
   100% {
     opacity: 1;
     transform: scale(1);
-  }
-}
-
-@keyframes icon-rotate {
-  0% {
-    transform: rotate(0deg) scale(0.8);
-    opacity: 0;
-  }
-  50% {
-    transform: rotate(180deg) scale(1.1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: rotate(360deg) scale(1);
-    opacity: 1;
   }
 }
 
@@ -107,17 +179,6 @@
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -132,50 +193,13 @@
   }
 }
 
-body {
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+/* Gunakan transform dan opacity untuk performa animasi yang lebih baik */
+.perf-animation {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
-.bg-transition,
-.border-transition,
-.text-transition,
-.fill-transition,
-.stroke-transition {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 0.3s;
-}
-
-.bg-transition {
-  transition-property: background-color;
-}
-
-.border-transition {
-  transition-property: border-color;
-}
-
-.text-transition {
-  transition-property: color;
-}
-
-.fill-transition {
-  transition-property: fill;
-}
-
-.stroke-transition {
-  transition-property: stroke;
-}
-
-.theme-transition {
-  animation: theme-switch 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.icon-transition {
-  animation: icon-rotate 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Base styles */
+/* Base transitions dengan performance mind */
 * {
   border-color: var(--border);
   outline-color: color-mix(in oklch, var(--ring), transparent 50%);
@@ -184,31 +208,39 @@ body {
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-feature-settings: "rlig" 1, "calt" 1;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Optimasi untuk form elements */
 input,
 textarea,
 select,
-button:not([class*="svg"]):not([class*="icon"]) {
-  transition: background-color 0.3s ease,
-              border-color 0.3s ease,
-              color 0.3s ease,
-              transform 0.2s ease !important;
+button {
+  transition: 
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
 }
 
-/* Pastikan ikon dan SVG tidak memiliki transisi yang mengganggu */
+/* Disable transitions untuk SVG dan icons */
 svg {
   transition: none !important;
 }
 
-/* Atau jika Anda ingin transisi halus untuk ikon, gunakan yang lebih spesifik */
-.icon-transition-only {
-  transition: opacity 0.3s ease, transform 0.3s ease !important;
+/* Focus styles yang lebih visible untuk accessibility */
+:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
-/* Efek halus untuk konten saat tema berganti */
-.dark .theme-content,
-:root .theme-content {
-  transition-duration: 0.4s !important;
+/* ARIA Live Regions untuk screen readers */
+[aria-live="polite"]:not(:focus):not(:active) {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }

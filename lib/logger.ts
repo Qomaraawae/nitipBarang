@@ -1,4 +1,3 @@
-// lib/logger.ts
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // Fungsi untuk menyensor data sensitif
@@ -46,6 +45,19 @@ export const maskUid = (uid: string): string => {
 export const logger = {
   log: (message: string, ...args: any[]) => {
     if (isDevelopment) {
+      // Skip log yang berhubungan dengan Cloudinary upload dan Auth
+      const shouldSkip = 
+        message.includes('Uploading to Cloudinary') ||
+        message.includes('Upload successful') ||
+        message.includes('Upload to Cloudinary') ||
+        message.includes('AUTH LOGIN') ||
+        message.includes('AUTH LOGOUT') ||
+        message.includes('AUTH REGISTER');
+      
+      if (shouldSkip) {
+        return; // Jangan tampilkan log ini
+      }
+      
       const sanitizedArgs = args.map(arg => sanitizeData(arg));
       console.log('[LOG]:', message, ...sanitizedArgs);
     }
@@ -79,27 +91,30 @@ export const logger = {
     }
   },
   
-  // Logger khusus untuk auth (dengan masking)
+  // Logger khusus untuk auth (dengan masking) - MODIFIKASI: nonaktifkan di development
   auth: {
     login: (email: string, role: string) => {
-      if (isDevelopment) {
-        const maskedEmail = maskEmail(email);
-        console.log('[AUTH LOGIN]:', `User ${maskedEmail} logged in as ${role}`);
-      }
+      // Nonaktifkan log auth di console
+      // if (isDevelopment) {
+      //   const maskedEmail = maskEmail(email);
+      //   console.log('[AUTH LOGIN]:', `User ${maskedEmail} logged in as ${role}`);
+      // }
     },
     
     logout: (email: string | null) => {
-      if (isDevelopment) {
-        const maskedEmail = maskEmail(email);
-        console.log('[AUTH LOGOUT]:', `User ${maskedEmail} logged out`);
-      }
+      // Nonaktifkan log auth di console
+      // if (isDevelopment) {
+      //   const maskedEmail = maskEmail(email);
+      //   console.log('[AUTH LOGOUT]:', `User ${maskedEmail} logged out`);
+      // }
     },
     
     register: (email: string, role: string) => {
-      if (isDevelopment) {
-        const maskedEmail = maskEmail(email);
-        console.log('[AUTH REGISTER]:', `User ${maskedEmail} registered as ${role}`);
-      }
+      // Nonaktifkan log auth di console
+      // if (isDevelopment) {
+      //   const maskedEmail = maskEmail(email);
+      //   console.log('[AUTH REGISTER]:', `User ${maskedEmail} registered as ${role}`);
+      // }
     },
     
     // Untuk debugging internal saja (tidak untuk production)

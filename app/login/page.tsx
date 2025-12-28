@@ -167,12 +167,6 @@ export default function LoginPage() {
                 </Link>
               </p>
               <p className="text-sm text-muted-foreground">
-                <Link
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Lupa password?
-                </Link>
               </p>
             </div>
           </CardContent>
@@ -186,14 +180,6 @@ export default function LoginPage() {
             </p>
           </CardFooter>
         </Card>
-
-        {/* Info Card */}
-        <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
-          <Shield className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-sm text-blue-800 dark:text-blue-300">
-            💡 Sistem ini menggunakan autentikasi berbasis role (Admin/User)
-          </AlertDescription>
-        </Alert>
       </div>
     </div>
   );

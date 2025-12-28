@@ -1,49 +1,68 @@
+// hooks/useBarang.ts
 import { useState, useEffect } from "react";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebaseConfig";
 import { Barang } from "@/types/barang";
-import { logger } from "@/lib/logger";
-
 
 export function useBarangRealTime() {
   const [barang, setBarang] = useState<(Barang & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const barangRef = collection(db, "barang");
-    const q = query(
-      barangRef,
-      where("status", "==", "dititipkan"),
-      orderBy("waktu_masuk", "desc")
-    );
+    try {
+      const barangRef = collection(db, "barang");
+      const q = query(
+        barangRef,
+        where("status", "==", "dititipkan"),
+        orderBy("waktu_masuk", "desc")
+      );
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as (Barang & { id: string })[];
-        
-        setBarang(data);
-        setLoading(false);
-      },
-      (error) => {
-  logger.error("Error fetching barang:", error);
-  setLoading(false);
-      }
-    );
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const data = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as (Barang & { id: string })[];
+          
+          setBarang(data);
+          setLoading(false);
+          setError(null);
+        },
+        (error) => {
+          console.error("Error fetching barang:", {
+            message: error.message,
+            code: error.code,
+            name: error.name
+          });
+          setError(error.message || "Gagal mengambil data barang");
+          setLoading(false);
+        }
+      );
 
-    return () => unsubscribe();
+      return () => {
+        try {
+          unsubscribe();
+        } catch (err) {
+          console.error("Error unsubscribing:", err);
+        }
+      };
+    } catch (err: any) {
+      console.error("Error in useBarangRealTime:", err);
+      setError(err.message || "Terjadi kesalahan");
+      setLoading(false);
+    }
   }, []);
 
-  return { barang, loading };
+  return { barang, loading, error };
 }
 
 // Hook untuk ambil barang by user
 export function useBarangByUser(userId: string) {
   const [barang, setBarang] = useState<(Barang & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) {
@@ -51,35 +70,55 @@ export function useBarangByUser(userId: string) {
       return;
     }
 
-    const barangRef = collection(db, "barang");
-    const q = query(
-      barangRef,
-      where("user_id", "==", userId),
-      where("status", "==", "dititipkan"),
-      orderBy("waktu_masuk", "desc")
-    );
+    try {
+      const barangRef = collection(db, "barang");
+      const q = query(
+        barangRef,
+        where("user_id", "==", userId),
+        where("status", "==", "dititipkan"),
+        orderBy("waktu_masuk", "desc")
+      );
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as (Barang & { id: string })[];
-        
-        setBarang(data);
-        setLoading(false);
-      },
-      (error) => {
-  logger.error("Error fetching user barang:", {
-    userId: userId,
-    error: error
-  });
-  setLoading(false);
-});
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const data = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as (Barang & { id: string })[];
+          
+          setBarang(data);
+          setLoading(false);
+          setError(null);
+        },
+        (error) => {
+          console.error("Error fetching user barang:", {
+            userId: userId,
+            message: error.message,
+            code: error.code,
+            name: error.name
+          });
+          setError(error.message || "Gagal mengambil data barang pengguna");
+          setLoading(false);
+        }
+      );
 
-    return () => unsubscribe();
+      return () => {
+        try {
+          unsubscribe();
+        } catch (err) {
+          console.error("Error unsubscribing user barang:", {
+            userId: userId,
+            error: err
+          });
+        }
+      };
+    } catch (err: any) {
+      console.error("Error in useBarangByUser:", err);
+      setError(err.message || "Terjadi kesalahan");
+      setLoading(false);
+    }
   }, [userId]);
 
-  return { barang, loading };
+  return { barang, loading, error };
 }

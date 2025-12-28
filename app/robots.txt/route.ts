@@ -1,0 +1,18 @@
+export async function GET() {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  
+  const robotsTxt = `User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /*?*
+
+Sitemap: ${baseUrl}/sitemap.xml`
+
+  return new Response(robotsTxt, {
+    headers: {
+      'Content-Type': 'text/plain',
+      'Cache-Control': 'public, max-age=86400',
+    },
+  })
+}

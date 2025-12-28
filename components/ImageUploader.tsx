@@ -1,8 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import Toast from "@/components/Toast";
-import { logger } from "@/lib/logger";
 
 interface Props {
   onUpload: (url: string) => void;
@@ -16,9 +15,30 @@ export default function ImageUploader({ onUpload }: Props) {
     type: "success" | "error";
   } | null>(null);
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validasi ukuran file (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Ukuran file maksimal 5MB");
+      setToast({ 
+        message: "Ukuran file maksimal 5MB", 
+        type: "error" 
+      });
+      return;
+    }
+
+    // Validasi tipe file
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError("Format file harus JPG, PNG, atau WebP");
+      setToast({ 
+        message: "Format file harus JPG, PNG, atau WebP", 
+        type: "error" 
+      });
+      return;
+    }
 
     setError("");
     setUploading(true);
@@ -26,21 +46,24 @@ export default function ImageUploader({ onUpload }: Props) {
     try {
       const url = await uploadToCloudinary(file);
       onUpload(url);
-      setToast({ message: "Foto berhasil diupload!", type: "success" });
+      setToast({ 
+        message: "Foto berhasil diupload!", 
+        type: "success" 
+      });
     } catch (err: any) {
       const errorMsg = err.message || "Upload foto gagal!";
       setError(errorMsg);
-      setToast({ message: errorMsg, type: "error" });
-      logger.error("Image upload error:", {
-        fileName: file?.name,
-        fileSize: file?.size,
-        error: err,
+      setToast({ 
+        message: errorMsg, 
+        type: "error" 
       });
     } finally {
       setUploading(false);
-      e.target.value = ""; // Reset input
+      if (e.target) {
+        e.target.value = ""; // Reset input
+      }
     }
-  };
+  }, [onUpload]);
 
   return (
     <div>
@@ -49,27 +72,45 @@ export default function ImageUploader({ onUpload }: Props) {
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
-          duration={5000}
+          duration={3000}
         />
       )}
 
-      <label className="block w-full cursor-pointer">
-        <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-blue-500 transition-colors bg-gray-50 hover:bg-blue-50">
+      <label className="block w-full cursor-pointer" aria-label="Upload foto barang">
+        <div 
+          className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-blue-500 transition-colors bg-gray-50 hover:bg-blue-50 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              document.getElementById('file-upload')?.click();
+            }
+          }}
+        >
           <div className="flex flex-col items-center justify-center space-y-3">
             {uploading ? (
               <>
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div 
+                  className="animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent" 
+                  role="status"
+                  aria-label="Mengunggah foto"
+                />
                 <p className="text-sm text-gray-600 font-medium">
                   Mengunggah foto...
+                </p>
+                <p className="text-xs text-gray-500">
+                  Mohon tunggu
                 </p>
               </>
             ) : (
               <>
                 <svg
-                  className="w-12 h-12 text-gray-400"
+                  className="w-10 h-10 text-gray-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -81,25 +122,35 @@ export default function ImageUploader({ onUpload }: Props) {
                 <p className="text-sm text-gray-600 font-medium">
                   Klik untuk upload foto
                 </p>
-                <p className="text-xs text-gray-500">
-                  PNG, JPG, JPEG (Max. 5MB)
+                <p className="text-xs text-gray-500 text-center">
+                  PNG, JPG, JPEG, WebP<br />(Max. 5MB)
                 </p>
               </>
             )}
           </div>
         </div>
         <input
+          id="file-upload"
           type="file"
           accept="image/*"
           capture="environment"
           onChange={handleFile}
           disabled={uploading}
           className="hidden"
+          aria-describedby="file-upload-description"
         />
       </label>
 
+      <p id="file-upload-description" className="sr-only">
+        Upload foto barang untuk penitipan. Format yang didukung: PNG, JPG, JPEG, WebP. Ukuran maksimal: 5MB.
+      </p>
+
       {error && (
-        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div 
+          className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg"
+          role="alert"
+          aria-live="polite"
+        >
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
