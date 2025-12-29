@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthContext";
+import { Toaster } from "sonner"; // TAMBAHKAN INI
 import "./globals.css";
 
 // Optimasi font loading
@@ -74,6 +75,18 @@ export default function RootLayout({
             </main>
           </AuthProvider>
         </ThemeProvider>
+        
+        {/* TAMBAHKAN Toaster di sini */}
+        <Toaster 
+          position="bottom-right"
+          toastOptions={{
+            duration: 3000,
+            className: "font-sans",
+          }}
+          expand={true}
+          richColors
+          closeButton
+        />
       </body>
     </html>
   );

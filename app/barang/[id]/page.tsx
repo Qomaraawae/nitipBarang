@@ -102,15 +102,28 @@ export default function DetailBarang({ params }: PageProps) {
 
     try {
       await navigator.clipboard.writeText(barang.kode_ambil);
+
+      // TAMBAHKAN toast untuk notifikasi popup
       toast.success("Kode berhasil disalin!", {
         description: `Kode ${barang.kode_ambil} telah disalin ke clipboard`,
+        duration: 3000,
+        position: "bottom-right",
+      });
+
+      logger.log("Kode copied to clipboard:", {
+        kode: barang.kode_ambil,
+        user: user?.email,
       });
     } catch (err) {
       logger.error("Failed to copy code to clipboard:", {
         kode: barang?.kode_ambil,
         error: err,
       });
-      toast.error("Gagal menyalin kode");
+
+      toast.error("Gagal menyalin kode", {
+        duration: 3000,
+        position: "bottom-right",
+      });
     }
   };
 
