@@ -1,5 +1,5 @@
 "use client";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { barangCollection } from "@/lib/firebase/firestore";
 import { addDoc, serverTimestamp } from "firebase/firestore";
@@ -14,13 +14,11 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -40,9 +38,10 @@ import {
   Camera,
   CheckCircle,
   Info,
-  MessageCircle,
+  Loader2,
 } from "lucide-react";
 import { logger } from "@/lib/logger";
+import confetti from "canvas-confetti";
 
 interface SuccessData {
   nama: string;
@@ -68,6 +67,73 @@ export default function TitipPage() {
 
   const router = useRouter();
   const { occupiedSlots, loading: slotsLoading } = useSlotAvailability();
+
+  // Function untuk trigger confetti
+  const triggerConfetti = () => {
+    // Reset any existing confetti
+    confetti.reset();
+
+    // Multiple confetti effects
+    const end = Date.now() + 3 * 1000; // 3 seconds
+    const colors = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444"];
+
+    (function frame() {
+      // Launch from the left edge
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: colors,
+      });
+
+      // Launch from the right edge
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: colors,
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    })();
+
+    // Burst effects
+    setTimeout(() => {
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: colors,
+      });
+    }, 500);
+
+    // More bursts
+    setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        angle: 90,
+        spread: 70,
+        origin: { x: 0.5, y: 0.8 },
+        colors: colors,
+      });
+    }, 1000);
+  };
+
+  // Effect untuk trigger confetti ketika dialog success dibuka
+  useEffect(() => {
+    if (showSuccessDialog) {
+      // Delay sedikit agar dialog muncul dulu baru confetti
+      const timer = setTimeout(() => {
+        triggerConfetti();
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessDialog]);
 
   const validateInput = (): boolean => {
     // Nama validation
@@ -452,11 +518,6 @@ export default function TitipPage() {
                         <ImageUploader onUpload={setFotoUrl} compact={true} />
                       </div>
 
-                      {/* Info tambahan */}
-                      <p className="text-xs text-gray-500 pl-6">
-                        Format: PNG, JPG, JPEG, WebP • Maks. 5MB
-                      </p>
-
                       {/* Preview gambar */}
                       {fotoUrl && (
                         <div className="mt-4 relative">
@@ -526,61 +587,82 @@ export default function TitipPage() {
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="sm:max-w-md bg-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+        <DialogContent className="max-w-xs sm:max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 sm:p-6">
+          <DialogHeader className="text-center">
+            <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
+              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
+            <DialogTitle className="text-lg sm:text-xl text-gray-900 dark:text-gray-100">
               Berhasil Disimpan!
             </DialogTitle>
-            <DialogDescription>Barang berhasil dititipkan</DialogDescription>
+            <DialogDescription className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Barang berhasil dititipkan
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <Alert className="bg-green-50 border-green-100">
-              <AlertDescription className="text-green-800">
-                Barang <strong>{successData.nama}</strong> berhasil dititipkan!
-              </AlertDescription>
-            </Alert>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="bg-white border border-gray-200">
-                <CardContent className="pt-6">
-                  <p className="text-center text-2xl font-bold text-purple-700">
-                    {successData.slot}
-                  </p>
-                  <p className="text-center text-sm text-gray-600">Slot</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-white border border-gray-200">
-                <CardContent className="pt-6">
-                  <p className="text-center text-xl font-bold text-blue-700 tracking-wider">
-                    {successData.kode}
-                  </p>
-                  <p className="text-center text-sm text-gray-600">
-                    Kode Ambil
-                  </p>
-                </CardContent>
-              </Card>
+          <div className="space-y-3 sm:space-y-4 mt-4">
+            {/* Success Message */}
+            <div className="text-center px-2">
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                Barang{" "}
+                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                  {successData.nama}
+                </span>{" "}
+                berhasil dititipkan
+              </p>
             </div>
 
-            <div className="text-sm text-gray-700 space-y-2">
-              <div className="flex justify-between">
-                <span>Pemilik:</span>
-                <span className="font-medium">{successData.nama}</span>
+            {/* Slot and Code Cards */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+                <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {successData.slot}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Slot
+                </p>
               </div>
-              <Separator className="bg-gray-200" />
-              <div className="flex justify-between">
-                <span>Tanggal:</span>
-                <span className="font-medium">
-                  {new Date().toLocaleDateString("id-ID")}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+                <p className="text-lg sm:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono tracking-tight">
+                  {successData.kode}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Kode Ambil
+                </p>
+              </div>
+            </div>
+
+            {/* Details */}
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-600 dark:text-gray-400">
+                  Pemilik:
+                </span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate ml-2">
+                  {successData.nama}
+                </span>
+              </div>
+              <div className="h-px bg-gray-200 dark:bg-gray-700"></div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-600 dark:text-gray-400">
+                  Tanggal:
+                </span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {new Date().toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
                 </span>
               </div>
             </div>
           </div>
 
-          <DialogFooter>
+          {/* Buttons */}
+          <DialogFooter className="mt-4 sm:mt-6 flex-col sm:flex-row gap-2">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => {
                 setShowSuccessDialog(false);
                 setNama("");
@@ -588,11 +670,17 @@ export default function TitipPage() {
                 setSlot(null);
                 setFotoUrl(undefined);
               }}
-              className="border-gray-300"
+              className="w-full sm:w-auto text-xs sm:text-sm border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
             >
               Titip Lagi
             </Button>
-            <Button onClick={handleCloseSuccess}>Kembali ke Dashboard</Button>
+            <Button
+              size="sm"
+              onClick={handleCloseSuccess}
+              className="w-full sm:w-auto text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white"
+            >
+              Dashboard
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
