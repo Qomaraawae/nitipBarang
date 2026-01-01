@@ -1,19 +1,24 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import Toast from "@/components/Toast";
+import { Plus, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   onUpload: (url: string) => void;
+  compact?: boolean; // Untuk tampilan tombol plus saja
 }
 
-export default function ImageUploader({ onUpload }: Props) {
+export default function ImageUploader({ onUpload, compact = false }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string>("");
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
   } | null>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,6 +70,54 @@ export default function ImageUploader({ onUpload }: Props) {
     }
   }, [onUpload]);
 
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Tampilan compact (hanya tombol plus)
+  if (compact) {
+    return (
+      <div>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+            duration={3000}
+          />
+        )}
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={handleClick}
+          disabled={uploading}
+          // PERUBAHAN: border-solid menggantikan border-dashed
+          className="h-12 w-12 rounded-full border-2 border-solid border-gray-300 hover:border-blue-500 hover:bg-blue-50"
+          aria-label="Upload foto barang"
+        >
+          {uploading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+          ) : (
+            <Plus className="h-5 w-5" />
+          )}
+        </Button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFile}
+          disabled={uploading}
+          className="hidden"
+        />
+      </div>
+    );
+  }
+
+  // Tampilan default (full)
   return (
     <div>
       {toast && (
@@ -77,8 +130,9 @@ export default function ImageUploader({ onUpload }: Props) {
       )}
 
       <label className="block w-full cursor-pointer" aria-label="Upload foto barang">
+        {/* PERUBAHAN: border-solid menggantikan border-dashed */}
         <div 
-          className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-blue-500 transition-colors bg-gray-50 hover:bg-blue-50 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200"
+          className="border-2 border-solid border-gray-300 rounded-xl p-6 hover:border-blue-500 transition-colors bg-gray-50 hover:bg-blue-50 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200"
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {

@@ -216,112 +216,126 @@ export default function TitipPage() {
             {/* Left Side - Slot Selection */}
             <div>
               <Card>
-                <CardHeader className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
-                  <CardTitle>Pilih Slot</CardTitle>
-                  <CardDescription className="text-purple-100">
-                    Klik slot yang tersedia untuk memilih
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {/* Legend */}
-                  <div className="flex flex-wrap gap-3 mb-6 pb-6 border-b">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 border-2 border-input rounded-lg"></div>
-                      <span className="text-sm text-muted-foreground">
-                        Tersedia
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg"></div>
-                      <span className="text-sm text-muted-foreground">
-                        Dipilih
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-muted rounded-lg"></div>
-                      <span className="text-sm text-muted-foreground">
-                        Terisi
-                      </span>
-                    </div>
+              <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                <CardTitle>Pilih Slot</CardTitle>
+                <CardDescription className="text-blue-100">
+                Klik slot yang tersedia untuk memilih
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                {/* Legend dengan warna yang lebih kontras */}
+                <div className="flex flex-wrap gap-4 mb-6 pb-6 border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 border-2 border-green-500 bg-white rounded-lg shadow-sm"></div>
+                  <span className="text-sm font-medium text-gray-700">
+                  Tersedia
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm"></div>
+                  <span className="text-sm font-medium text-gray-700">
+                  Dipilih
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 border-2 border-gray-600 bg-gray-700 rounded-lg shadow-sm"></div>
+                  <span className="text-sm font-medium text-gray-700">
+                  Terisi
+                  </span>
+                </div>
+                </div>
+
+                {/* Selected Slot Info */}
+                {slot && (
+                <Alert className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-700">
+                  Slot terpilih:{" "}
+                  <strong className="text-2xl ml-2 text-blue-800">
+                    {slot}
+                  </strong>
+                  </AlertDescription>
+                </Alert>
+                )}
+
+                {/* Slot Grid dengan warna yang lebih cerah */}
+                {slotsLoading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                  <p className="text-gray-600">Memuat slot...</p>
+                </div>
+                ) : (
+                <div className="space-y-3">
+                  {Array.from({ length: rows }, (_, rowIndex) => (
+                  <div
+                    key={rowIndex}
+                    className="flex justify-center gap-2"
+                  >
+                    {Array.from(
+                    { length: slotsPerRow },
+                    (_, colIndex) => {
+                      const slotNumber =
+                      rowIndex * slotsPerRow + colIndex + 1;
+                      if (slotNumber > totalSlots) return null;
+
+                      const occupied = isSlotOccupied(slotNumber);
+                      const isSelected = slot === slotNumber;
+
+                      return (
+                      <button
+                        key={slotNumber}
+                        type="button"
+                        onClick={() =>
+                        !occupied && setSlot(slotNumber)
+                        }
+                        disabled={occupied}
+                        className={`
+                  w-12 h-12 rounded-lg font-medium transition-all duration-200
+                  flex items-center justify-center text-sm border-2
+                  ${
+                    occupied
+                    ? "bg-gray-700 border-gray-800 text-gray-300 cursor-not-allowed shadow-inner"
+                    : isSelected
+                    ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105 border-blue-500"
+                    : "bg-white border-green-400 text-gray-800 hover:border-green-500 hover:bg-green-50 hover:shadow-md active:scale-95"
+                  }
+                  `}
+                      >
+                        {slotNumber}
+                      </button>
+                      );
+                    }
+                    )}
                   </div>
+                  ))}
+                </div>
+                )}
 
-                  {/* Selected Slot Info */}
-                  {slot && (
-                    <Alert className="mb-6">
-                      <CheckCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        Slot terpilih:{" "}
-                        <strong className="text-2xl ml-2">{slot}</strong>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {/* Slot Grid */}
-                  {slotsLoading ? (
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-                      <p className="text-muted-foreground">Memuat slot...</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {Array.from({ length: rows }, (_, rowIndex) => (
-                        <div
-                          key={rowIndex}
-                          className="flex justify-center gap-2"
-                        >
-                          {Array.from(
-                            { length: slotsPerRow },
-                            (_, colIndex) => {
-                              const slotNumber =
-                                rowIndex * slotsPerRow + colIndex + 1;
-                              if (slotNumber > totalSlots) return null;
-
-                              return (
-                                <button
-                                  key={slotNumber}
-                                  type="button"
-                                  onClick={() =>
-                                    !isSlotOccupied(slotNumber) &&
-                                    setSlot(slotNumber)
-                                  }
-                                  disabled={isSlotOccupied(slotNumber)}
-                                  className={getSlotClassName(slotNumber)}
-                                >
-                                  {slotNumber}
-                                </button>
-                              );
-                            }
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Slot Summary */}
-                  <Separator className="my-6" />
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <Card>
-                      <CardContent className="pt-6">
-                        <p className="text-2xl font-bold text-green-600">
-                          {totalSlots - occupiedSlots.length}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Slot Tersedia
-                        </p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="pt-6">
-                        <p className="text-2xl font-bold text-destructive">
-                          {occupiedSlots.length}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Slot Terisi
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
+                {/* Slot Summary dengan warna yang lebih hidup */}
+                <Separator className="my-6" />
+                <div className="grid grid-cols-2 gap-4 text-center">
+                <Card className="border-2 border-green-300 bg-gradient-to-b from-green-50 to-white shadow-sm">
+                  <CardContent className="pt-6">
+                  <p className="text-2xl font-bold text-green-700">
+                    {totalSlots - occupiedSlots.length}
+                  </p>
+                  <p className="text-sm font-medium text-green-800">
+                    Slot Tersedia
+                  </p>
+                  </CardContent>
+                </Card>
+                <Card className="border-2 border-gray-300 bg-gradient-to-b from-gray-50 to-white shadow-sm">
+                  <CardContent className="pt-6">
+                  <p className="text-2xl font-bold text-gray-700">
+                    {occupiedSlots.length}
+                  </p>
+                  <p className="text-sm font-medium text-gray-800">
+                    Slot Terisi
+                  </p>
+                  </CardContent>
+                </Card>
+                </div>
+              </CardContent>
               </Card>
             </div>
 
@@ -374,11 +388,21 @@ export default function TitipPage() {
 
                     {/* Image Upload */}
                     <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <Camera className="h-4 w-4" />
-                        Foto Barang
-                      </Label>
-                      <ImageUploader onUpload={setFotoUrl} />
+                      <div className="flex items-center gap-3">
+                        <Label className="flex items-center gap-2">
+                          <Camera className="h-4 w-4" />
+                          Foto Barang
+                        </Label>
+                        {/* Tombol plus compact */}
+                        <ImageUploader onUpload={setFotoUrl} compact={true} />
+                      </div>
+
+                      {/* Info tambahan */}
+                      <p className="text-xs text-gray-500 pl-6">
+                        Format: PNG, JPG, JPEG, WebP • Maks. 5MB
+                      </p>
+
+                      {/* Preview gambar */}
                       {fotoUrl && (
                         <div className="mt-4 relative">
                           <img

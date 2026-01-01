@@ -125,12 +125,12 @@ export default function Dashboard() {
             <div className="flex items-center gap-3">
               <ModeToggle />
 
-              {/* Profile Dropdown untuk desktop */}
+              {/* Profile Dropdown untuk desktop - Versi gradient */}
               <div className="hidden md:block relative">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  className="gap-2 text-muted-foreground hover:text-foreground hover:bg-accent"
                   onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                 >
                   <Avatar className="h-8 w-8">
@@ -141,6 +141,7 @@ export default function Dashboard() {
                   </Avatar>
                   <ChevronDown className="h-3 w-3" />
                 </Button>
+
                 {/* Dropdown Menu */}
                 {showProfileDropdown && (
                   <>
@@ -149,29 +150,32 @@ export default function Dashboard() {
                       onClick={() => setShowProfileDropdown(false)}
                     />
                     <div className="absolute right-0 top-12 w-64 z-50">
-                      {/* MODIFIED: Changed from bg-background/80 to bg-white for non-transparent */}
-                      <div className="bg-white border border-border/50 rounded-lg shadow-xl shadow-black/10 animate-in slide-in-from-top-2">
-                        <div className="p-4 border-b border-border/50">
+                      {/* VERSI GRADIENT: Background gradient ringan */}
+                      <div className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl shadow-black/10 dark:shadow-black/20 animate-in slide-in-from-top-2">
+                        <div className="p-4 border-b border-gray-100 dark:border-gray-700">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12 ring-2 ring-background/50">
+                            <Avatar className="h-12 w-12 ring-2 ring-white dark:ring-gray-900 shadow-sm">
                               <AvatarImage src={user.photoURL || ""} />
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-indigo-600/20">
-                                <User className="h-6 w-6 text-blue-500" />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                                <User className="h-6 w-6" />
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-foreground text-sm truncate">
+                              <p className="font-medium text-gray-800 dark:text-gray-200 text-sm truncate">
                                 {user.email}
                               </p>
                               <div className="flex items-center gap-2 mt-1">
-                                {/* MODIFIED: Changed badge background to solid */}
                                 <Badge
                                   variant={isAdmin ? "default" : "secondary"}
-                                  className="text-xs bg-blue-100 text-blue-800 border-none"
+                                  className={`text-xs font-medium ${
+                                    isAdmin
+                                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0"
+                                      : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-0"
+                                  }`}
                                 >
                                   {isAdmin ? "Admin" : "User"}
                                 </Badge>
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
                                   {getUserName()}
                                 </span>
                               </div>
@@ -181,76 +185,7 @@ export default function Dashboard() {
                         <div className="p-2">
                           <Button
                             variant="ghost"
-                            className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                            onClick={handleLogout}
-                          >
-                            <LogOut className="h-4 w-4" />
-                            <span className="font-medium">Keluar</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Profile Dropdown untuk mobile */}
-              <div className="md:hidden relative">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL || ""} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100">
-                      <User className="h-4 w-4 text-blue-600" />
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-
-                {/* Dropdown Menu Mobile */}
-                {showProfileDropdown && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowProfileDropdown(false)}
-                    />
-                    <div className="absolute right-4 top-12 w-64 z-50">
-                      {/* MODIFIED: Changed from bg-background/80 to bg-white for non-transparent */}
-                      <div className="bg-white border border-border/50 rounded-lg shadow-xl shadow-black/10 animate-in slide-in-from-top-2">
-                        <div className="p-4 border-b border-border/50">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12 ring-2 ring-background/50">
-                              <AvatarImage src={user.photoURL || ""} />
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-indigo-600/20">
-                                <User className="h-6 w-6 text-blue-500" />
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-foreground text-sm truncate">
-                                {user.email}
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                {/* MODIFIED: Changed badge background to solid */}
-                                <Badge
-                                  variant={isAdmin ? "default" : "secondary"}
-                                  className="text-xs bg-blue-100 text-blue-800 border-none"
-                                >
-                                  {isAdmin ? "Admin" : "User"}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground">
-                                  {getUserName()}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="p-2">
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"
                             onClick={handleLogout}
                           >
                             <LogOut className="h-4 w-4" />
@@ -266,7 +201,7 @@ export default function Dashboard() {
           </div>
 
           {/* Mobile Navigation - Hanya untuk admin */}
-          {isAdmin && <div className="lg:hidden py-3 border-t"></div>}
+          {isAdmin && null}
         </div>
       </header>
 

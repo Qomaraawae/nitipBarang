@@ -32,11 +32,12 @@ export default function SlotGrid({
             disabled={occupied}
             className={`
               aspect-square rounded-lg font-bold text-lg transition-all duration-200
+              flex items-center justify-center border-2
               ${occupied 
-                ? 'bg-red-100 text-red-400 cursor-not-allowed border-2 border-red-200' 
+                ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
                 : isSelected
-                  ? 'bg-green-500 text-white shadow-lg scale-110 border-2 border-green-600'
-                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-105 border-2 border-blue-200'
+                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 text-white shadow-lg scale-105 border-transparent'
+                  : 'bg-white dark:bg-gray-900 border-green-500 dark:border-green-400 text-gray-700 dark:text-gray-300 hover:border-green-600 dark:hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/30 hover:shadow-sm'
               }
             `}
           >

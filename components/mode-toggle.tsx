@@ -1,93 +1,107 @@
-"use client";
-
-import * as React from "react";
-import { Moon, Sun, Monitor } from "lucide-react";
-import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Sun, Moon, Check, Monitor } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function ModeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-  const [isAnimating, setIsAnimating] = React.useState(false);
+  const [theme, setTheme] = useState<string>("system");
+  const [mounted, setMounted] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
+    const savedTheme = localStorage.getItem("theme") || "system";
+    setTheme(savedTheme);
+    applyTheme(savedTheme);
   }, []);
 
+  const applyTheme = (newTheme: string) => {
+    const root = document.documentElement;
+
+    if (
+      newTheme === "dark" ||
+      (newTheme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+  };
+
   const handleThemeChange = (newTheme: string) => {
-    setIsAnimating(true);
     setTheme(newTheme);
-
-    // Reset animasi setelah selesai
-    setTimeout(() => {
-      setIsAnimating(false);
-    }, 600);
+    localStorage.setItem("theme", newTheme);
+    applyTheme(newTheme);
   };
 
-  const toggleTheme = () => {
-    const themes = ["light", "dark", "system"];
-    const currentIndex = themes.indexOf(theme || "system");
-    const nextIndex = (currentIndex + 1) % themes.length;
-    handleThemeChange(themes[nextIndex]);
-  };
-
-  const getIcon = () => {
-    switch (theme) {
-      case "dark":
-        return <Moon className="h-[1.2rem] w-[1.2rem] no-transition" />;
-      case "light":
-        return <Sun className="h-[1.2rem] w-[1.2rem] no-transition" />;
-      default:
-        return <Monitor className="h-[1.2rem] w-[1.2rem] no-transition" />;
-    }
-  };
-
-  const getTooltip = () => {
-    switch (theme) {
-      case "dark":
-        return "Dark mode (klik untuk System)";
-      case "light":
-        return "Light mode (klik untuk Dark)";
-      default:
-        return "System mode (klik untuk Light)";
-    }
-  };
-
-  if (!mounted) {
-    return (
-      <Button variant="outline" size="icon" disabled>
-        <Sun className="h-[1.2rem] w-[1.2rem] no-transition" />
-      </Button>
-    );
-  }
+  if (!mounted) return null;
 
   return (
-    <Button
-      variant="outline"
-      size="icon"
-      onClick={toggleTheme}
-      title={getTooltip()}
-      aria-label="Toggle theme"
-      className={`relative overflow-hidden transition-all duration-300 ${
-        isAnimating
-          ? "scale-110 bg-primary/20 border-primary/50"
-          : "hover:scale-105"
-      }`}
-    >
-      {/* Animasi background pulse */}
-      {isAnimating && (
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 animate-pulse" />
-      )}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className="h-10 w-10 flex items-center justify-center text-gray-800 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+          aria-label="Toggle theme"
+          title="Ubah tema"
+        >
+          <Sun className="h-5 w-5 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+          <Moon className="absolute h-5 w-5 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className="w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg"
+      >
+        <DropdownMenuItem
+          onClick={() => handleThemeChange("light")}
+          className="flex items-center justify-between cursor-pointer text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          <div className="flex items-center gap-3">
+            <Sun className="h-4 w-4 text-gray-700 dark:text-gray-400" />
+            <div className="flex flex-col">
+              <span className="font-medium">Terang</span>
+            </div>
+          </div>
+          {theme === "light" && (
+            <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          )}
+        </DropdownMenuItem>
 
-      {/* Ikon dengan animasi */}
-      <div className={`relative ${isAnimating ? "icon-transition" : ""}`}>
-        {getIcon()}
-      </div>
+        <DropdownMenuItem
+          onClick={() => handleThemeChange("dark")}
+          className="flex items-center justify-between cursor-pointer text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          <div className="flex items-center gap-3">
+            <Moon className="h-4 w-4 text-gray-700 dark:text-gray-400" />
+            <div className="flex flex-col">
+              <span className="font-medium">Gelap</span>
+            </div>
+          </div>
+          {theme === "dark" && (
+            <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          )}
+        </DropdownMenuItem>
 
-      {/* Indikator tema aktif */}
-      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary opacity-70" />
-
-      <span className="sr-only">Toggle theme</span>
-    </Button>
+        <DropdownMenuItem
+          onClick={() => handleThemeChange("system")}
+          className="flex items-center justify-between cursor-pointer text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          <div className="flex items-center gap-3">
+            <Monitor className="h-4 w-4 text-gray-700 dark:text-gray-400" />
+            <div className="flex flex-col">
+              <span className="font-medium">Sistem</span>
+            </div>
+          </div>
+          {theme === "system" && (
+            <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          )}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
