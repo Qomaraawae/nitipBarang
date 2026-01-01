@@ -216,126 +216,181 @@ export default function TitipPage() {
             {/* Left Side - Slot Selection */}
             <div>
               <Card>
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-                <CardTitle>Pilih Slot</CardTitle>
-                <CardDescription className="text-blue-100">
-                Klik slot yang tersedia untuk memilih
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                {/* Legend dengan warna yang lebih kontras */}
-                <div className="flex flex-wrap gap-4 mb-6 pb-6 border-b border-gray-200">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 border-2 border-green-500 bg-white rounded-lg shadow-sm"></div>
-                  <span className="text-sm font-medium text-gray-700">
-                  Tersedia
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm"></div>
-                  <span className="text-sm font-medium text-gray-700">
-                  Dipilih
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 border-2 border-gray-600 bg-gray-700 rounded-lg shadow-sm"></div>
-                  <span className="text-sm font-medium text-gray-700">
-                  Terisi
-                  </span>
-                </div>
-                </div>
-
-                {/* Selected Slot Info */}
-                {slot && (
-                <Alert className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-                  <CheckCircle className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-700">
-                  Slot terpilih:{" "}
-                  <strong className="text-2xl ml-2 text-blue-800">
-                    {slot}
-                  </strong>
-                  </AlertDescription>
-                </Alert>
-                )}
-
-                {/* Slot Grid dengan warna yang lebih cerah */}
-                {slotsLoading ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                  <p className="text-gray-600">Memuat slot...</p>
-                </div>
-                ) : (
-                <div className="space-y-3">
-                  {Array.from({ length: rows }, (_, rowIndex) => (
-                  <div
-                    key={rowIndex}
-                    className="flex justify-center gap-2"
-                  >
-                    {Array.from(
-                    { length: slotsPerRow },
-                    (_, colIndex) => {
-                      const slotNumber =
-                      rowIndex * slotsPerRow + colIndex + 1;
-                      if (slotNumber > totalSlots) return null;
-
-                      const occupied = isSlotOccupied(slotNumber);
-                      const isSelected = slot === slotNumber;
-
-                      return (
-                      <button
-                        key={slotNumber}
-                        type="button"
-                        onClick={() =>
-                        !occupied && setSlot(slotNumber)
-                        }
-                        disabled={occupied}
-                        className={`
-                  w-12 h-12 rounded-lg font-medium transition-all duration-200
-                  flex items-center justify-center text-sm border-2
-                  ${
-                    occupied
-                    ? "bg-gray-700 border-gray-800 text-gray-300 cursor-not-allowed shadow-inner"
-                    : isSelected
-                    ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105 border-blue-500"
-                    : "bg-white border-green-400 text-gray-800 hover:border-green-500 hover:bg-green-50 hover:shadow-md active:scale-95"
-                  }
-                  `}
-                      >
-                        {slotNumber}
-                      </button>
-                      );
-                    }
-                    )}
+                <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                  <CardTitle>Pilih Slot</CardTitle>
+                  <CardDescription className="text-blue-100">
+                    Klik slot yang tersedia untuk memilih
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6">
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-green-500 bg-white rounded-lg shadow-sm"></div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">
+                        Tersedia
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm"></div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">
+                        Dipilih
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-gray-500 bg-gray-400 rounded-lg shadow-sm"></div>
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">
+                        Terisi
+                      </span>
+                    </div>
                   </div>
-                  ))}
-                </div>
-                )}
 
-                {/* Slot Summary dengan warna yang lebih hidup */}
-                <Separator className="my-6" />
-                <div className="grid grid-cols-2 gap-4 text-center">
-                <Card className="border-2 border-green-300 bg-gradient-to-b from-green-50 to-white shadow-sm">
-                  <CardContent className="pt-6">
-                  <p className="text-2xl font-bold text-green-700">
-                    {totalSlots - occupiedSlots.length}
-                  </p>
-                  <p className="text-sm font-medium text-green-800">
-                    Slot Tersedia
-                  </p>
-                  </CardContent>
-                </Card>
-                <Card className="border-2 border-gray-300 bg-gradient-to-b from-gray-50 to-white shadow-sm">
-                  <CardContent className="pt-6">
-                  <p className="text-2xl font-bold text-gray-700">
-                    {occupiedSlots.length}
-                  </p>
-                  <p className="text-sm font-medium text-gray-800">
-                    Slot Terisi
-                  </p>
-                  </CardContent>
-                </Card>
-                </div>
-              </CardContent>
+                  {/* Selected Slot Info */}
+                  {slot && (
+                    <Alert className="mb-4 sm:mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                      <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                      <AlertDescription className="text-blue-700 text-sm sm:text-base">
+                        Slot terpilih:{" "}
+                        <strong className="text-xl sm:text-2xl ml-2 text-blue-800">
+                          {slot}
+                        </strong>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Slot Grid */}
+                  {slotsLoading ? (
+                    <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+                      <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mb-4"></div>
+                      <p className="text-sm sm:text-base text-gray-600">
+                        Memuat slot...
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Desktop Layout (grid) */}
+                      <div className="hidden sm:block space-y-3">
+                        {Array.from({ length: rows }, (_, rowIndex) => (
+                          <div
+                            key={rowIndex}
+                            className="flex justify-center gap-2"
+                          >
+                            {Array.from(
+                              { length: slotsPerRow },
+                              (_, colIndex) => {
+                                const slotNumber =
+                                  rowIndex * slotsPerRow + colIndex + 1;
+                                if (slotNumber > totalSlots) return null;
+
+                                const occupied = isSlotOccupied(slotNumber);
+                                const isSelected = slot === slotNumber;
+
+                                return (
+                                  <button
+                                    key={slotNumber}
+                                    type="button"
+                                    onClick={() =>
+                                      !occupied && setSlot(slotNumber)
+                                    }
+                                    disabled={occupied}
+                                    className={`
+                          w-12 h-12 rounded-lg font-medium transition-all duration-200
+                          flex items-center justify-center text-sm border-2
+                          ${
+                            occupied
+                              ? "bg-gray-400 border-gray-500 text-gray-700 cursor-not-allowed"
+                              : isSelected
+                              ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105 border-blue-500"
+                              : "bg-white border-green-400 text-gray-800 hover:border-green-500 hover:bg-green-50 hover:shadow-md active:scale-95"
+                          }
+                        `}
+                                  >
+                                    {slotNumber}
+                                  </button>
+                                );
+                              }
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Mobile Layout (scrollable) */}
+                      <div className="sm:hidden">
+                        <div className="mb-3 text-xs text-gray-600">
+                          <p>Geser ke kanan/kiri untuk melihat semua slot</p>
+                        </div>
+                        <div className="overflow-x-auto pb-2">
+                          <div className="inline-flex flex-col gap-2 min-w-full">
+                            {Array.from({ length: rows }, (_, rowIndex) => (
+                              <div key={rowIndex} className="flex gap-2">
+                                {Array.from(
+                                  { length: slotsPerRow },
+                                  (_, colIndex) => {
+                                    const slotNumber =
+                                      rowIndex * slotsPerRow + colIndex + 1;
+                                    if (slotNumber > totalSlots) return null;
+
+                                    const occupied = isSlotOccupied(slotNumber);
+                                    const isSelected = slot === slotNumber;
+
+                                    return (
+                                      <button
+                                        key={slotNumber}
+                                        type="button"
+                                        onClick={() =>
+                                          !occupied && setSlot(slotNumber)
+                                        }
+                                        disabled={occupied}
+                                        className={`
+                              w-10 h-10 rounded-lg font-medium transition-all duration-200
+                              flex items-center justify-center text-xs border-2 flex-shrink-0
+                              ${
+                                occupied
+                                  ? "bg-gray-400 border-gray-500 text-gray-700 cursor-not-allowed"
+                                  : isSelected
+                                  ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105 border-blue-500"
+                                  : "bg-white border-green-400 text-gray-800 hover:border-green-500 hover:bg-green-50"
+                              }
+                            `}
+                                      >
+                                        {slotNumber}
+                                      </button>
+                                    );
+                                  }
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Slot Summary */}
+                  <Separator className="my-4 sm:my-6" />
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4 text-center">
+                    <Card className="border-2 border-green-300 bg-gradient-to-b from-green-50 to-white shadow-sm">
+                      <CardContent className="pt-4 sm:pt-6 px-2 sm:px-6">
+                        <p className="text-lg sm:text-2xl font-bold text-green-700">
+                          {totalSlots - occupiedSlots.length}
+                        </p>
+                        <p className="text-xs sm:text-sm font-medium text-green-800">
+                          Slot Tersedia
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-2 border-gray-400 bg-gradient-to-b from-gray-100 to-white shadow-sm">
+                      <CardContent className="pt-4 sm:pt-6 px-2 sm:px-6">
+                        <p className="text-lg sm:text-2xl font-bold text-gray-800">
+                          {occupiedSlots.length}
+                        </p>
+                        <p className="text-xs sm:text-sm font-medium text-gray-800">
+                          Slot Terisi
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
               </Card>
             </div>
 
