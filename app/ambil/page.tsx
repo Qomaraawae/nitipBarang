@@ -163,7 +163,6 @@ export default function AmbilPage() {
       setTimeout(() => {
         router.push("/histori");
       }, 0.005);
-      
     } catch (err) {
       logger.error("Error updating barang status:", {
         barangId: barang.id,
@@ -460,169 +459,129 @@ export default function AmbilPage() {
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="sm:max-w-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-300/50 dark:border-gray-700/50 shadow-2xl">
-          {/* Background overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-gray-100/10 dark:from-gray-900/20 dark:to-gray-800/10 rounded-lg -z-10" />
-
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              Konfirmasi Pengambilan
-            </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400">
-              Pastikan data barang sudah sesuai sebelum konfirmasi
-            </DialogDescription>
+        <DialogContent
+          className="
+    w-[90vw] max-w-md
+    sm:max-w-lg
+    bg-white dark:bg-gray-900 
+    border border-gray-200 dark:border-gray-800 
+    p-4 sm:p-5
+    rounded-lg
+  "
+        >
+          {/* Header */}
+          <DialogHeader className="mb-4">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <div>
+                <DialogTitle className="text-lg text-gray-900 dark:text-gray-100">
+                  Konfirmasi Pengambilan
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-600 dark:text-gray-400">
+                  Barang milik: {barang?.nama_pemilik}
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
           {barang && (
-            <div className="space-y-6">
-              <Alert className="bg-gradient-to-r from-blue-50/80 to-blue-100/50 dark:from-blue-900/40 dark:to-blue-800/40 border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
-                <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <AlertDescription className="text-blue-800 dark:text-blue-300">
-                  Konfirmasi pengambilan barang milik{" "}
-                  <strong className="text-blue-900 dark:text-blue-200">
-                    {barang.nama_pemilik}
-                  </strong>
-                </AlertDescription>
-              </Alert>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Image Section */}
-                <div className="space-y-3">
-                  <Label className="text-gray-700 dark:text-gray-300 font-medium">
-                    Foto Barang
-                  </Label>
-                  <div className="relative rounded-xl overflow-hidden border-2 border-gray-300/30 dark:border-gray-700/30 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm aspect-square shadow-inner">
-                    {barang.foto_url ? (
-                      <img
-                        src={barang.foto_url}
-                        alt={`Barang ${barang.nama_pemilik}`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
-                        <Package className="h-16 w-16 text-gray-400 dark:text-gray-500 mb-2" />
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Tidak ada foto
-                        </p>
-                      </div>
-                    )}
+            <div className="space-y-4">
+              {/* Main Info Cards */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Slot Card */}
+                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+                    {barang.slot}
+                  </div>
+                  <div className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                    Slot
                   </div>
                 </div>
 
-                {/* Info Section */}
-                <div className="space-y-4">
-                  <div>
-                    <Label className="mb-4 block text-gray-700 dark:text-gray-300 font-medium">
-                      Informasi Barang
-                    </Label>
-
-                    {/* Kode & Slot Cards */}
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      <Card className="border-2 border-gray-300/30 dark:border-gray-700/30 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm shadow-sm">
-                        <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold tracking-wider font-mono text-gray-900 dark:text-gray-100">
-                            {barang.kode_ambil}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            Kode Ambil
-                          </p>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="border-2 border-gray-300/30 dark:border-gray-700/30 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm shadow-sm">
-                        <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                            {barang.slot}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            Nomor Slot
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Details List */}
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3 p-3 rounded-xl border border-gray-300/30 dark:border-gray-700/30 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-                        <div className="rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/50 dark:to-blue-800/50 p-2">
-                          <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                            Nama Pemilik
-                          </p>
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">
-                            {barang.nama_pemilik}
-                          </p>
-                        </div>
-                      </div>
-
-                      {barang.no_hp && (
-                        <div className="flex items-start gap-3 p-3 rounded-xl border border-gray-300/30 dark:border-gray-700/30 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-                          <div className="rounded-lg bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/50 dark:to-green-800/50 p-2">
-                            <Phone className="h-4 w-4 text-green-600 dark:text-green-400" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                              Nomor HP
-                            </p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">
-                              {barang.no_hp}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {barang.waktu_masuk && (
-                        <div className="flex items-start gap-3 p-3 rounded-xl border border-gray-300/30 dark:border-gray-700/30 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-                          <div className="rounded-lg bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/50 dark:to-purple-800/50 p-2">
-                            <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                              Waktu Masuk
-                            </p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">
-                              {formatTanggal(barang.waktu_masuk.toDate())}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                {/* Kode Card */}
+                <div className="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-center">
+                  <div className="text-xl font-bold text-purple-700 dark:text-purple-400 font-mono">
+                    {barang.kode_ambil}
+                  </div>
+                  <div className="text-xs text-purple-600 dark:text-purple-300 mt-1">
+                    Kode Ambil
                   </div>
                 </div>
               </div>
 
-              {/* Warning Alert */}
-              <Alert
-                variant="destructive"
-                className="bg-gradient-to-r from-red-50/80 to-red-100/50 dark:from-red-900/40 dark:to-red-800/40 border border-red-200/50 dark:border-red-800/50 backdrop-blur-sm"
-              >
-                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                <AlertDescription className="text-red-800 dark:text-red-300">
-                  <strong className="text-red-900 dark:text-red-200">
-                    Perhatian:
-                  </strong>{" "}
-                  Pastikan barang sesuai dengan foto dan data di atas sebelum
-                  mengkonfirmasi pengambilan.
-                </AlertDescription>
-              </Alert>
+              {/* Quick Details */}
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Pemilik
+                  </span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {barang.nama_pemilik}
+                  </span>
+                </div>
+
+                {barang.no_hp && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      No. HP
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {barang.no_hp}
+                    </span>
+                  </div>
+                )}
+
+                {barang.waktu_masuk && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Masuk
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {formatTanggal(barang.waktu_masuk.toDate())}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Photo Preview (Jika ada) */}
+              {barang.foto_url && (
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 px-3 py-2 bg-gray-50 dark:bg-gray-800">
+                    Foto Barang
+                  </div>
+                  <img
+                    src={barang.foto_url}
+                    alt={`Barang ${barang.nama_pemilik}`}
+                    className="w-full h-32 object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Warning Message */}
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                    Pastikan barang sesuai sebelum konfirmasi
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
-          <DialogFooter className="pt-4 border-t border-gray-300/30 dark:border-gray-700/30">
+          {/* Action Buttons */}
+          <div className="mt-5 flex gap-3">
             <Button
               variant="outline"
               onClick={() => setShowConfirmDialog(false)}
-              className="border-2 border-gray-300/50 dark:border-gray-700/50 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 text-gray-700 dark:text-gray-300 backdrop-blur-sm"
+              className="flex-1 border-gray-300 dark:border-gray-700"
             >
               Batal
             </Button>
             <Button
               onClick={handleKonfirmasiAmbil}
               disabled={loading}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/20 dark:shadow-blue-900/30"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
             >
               {loading ? (
                 <>
@@ -632,11 +591,11 @@ export default function AmbilPage() {
               ) : (
                 <>
                   <CheckCircle className="mr-2 h-4 w-4" />
-                  Konfirmasi Ambil
+                  Konfirmasi
                 </>
               )}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
