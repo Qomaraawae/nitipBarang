@@ -3,7 +3,6 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/firebaseConfig";
-import { useRouter, usePathname } from "next/navigation";
 import { logger } from "@/lib/logger";
 
 export type UserRole = "admin" | "user";
@@ -19,6 +18,8 @@ interface AuthContextType {
   userData: UserData | null;
   role: UserRole | null;
   loading: boolean;
+  showLoginModal: boolean;
+  setShowLoginModal: (show: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -26,6 +27,8 @@ const AuthContext = createContext<AuthContextType>({
   userData: null,
   role: null,
   loading: true,
+  showLoginModal: false,
+  setShowLoginModal: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -33,8 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialCheckDone, setInitialCheckDone] = useState(false);
-  const router = useRouter();
-  const pathname = usePathname();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const ensureUserDocument = async (currentUser: User) => {
     try {
@@ -106,29 +108,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (!initialCheckDone) return;
-
-    const publicPages = ["/login", "/register"];
-    const isPublicPage = publicPages.includes(pathname);
-    
-    if (!user && !isPublicPage) {
-      router.replace("/login");
-      return;
-    }
-
-    if (user && isPublicPage) {
-      router.replace("/");
-      return;
-    }
-  }, [user, userData, initialCheckDone, pathname, router]);
-
   if (loading || !initialCheckDone) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Memuat...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground font-medium">Memuat...</p>
         </div>
       </div>
     );
@@ -140,7 +125,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user, 
         userData, 
         role: userData?.role || null, 
-        loading 
+        loading,
+        showLoginModal,
+        setShowLoginModal
       }}
     >
       {children}
