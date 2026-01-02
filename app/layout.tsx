@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NitipBarang - Sistem Penitipan Barang",
+  title: "NitipBarang",
   description: "Sistem manajemen penitipan barang yang aman dan terpercaya",
   keywords: ["penitipan", "barang", "titip", "ambil", "storage"],
   authors: [{ name: "NitipBarang Team" }],
