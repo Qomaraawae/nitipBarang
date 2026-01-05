@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   authors: [{ name: "NitipBarang Team" }],
   robots: "index, follow",
   openGraph: {
-    title: "NitipBarang - Sistem Penitipan Barang",
+    title: "NitipBarang",
     description: "Sistem manajemen penitipan barang yang aman dan terpercaya",
     type: "website",
   },
