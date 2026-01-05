@@ -18,25 +18,22 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "sonner"; // Menggunakan sonner karena tidak ada use-toast
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Package,
@@ -48,8 +45,6 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
-  ChevronRight,
-  Info,
 } from "lucide-react";
 import { logger } from "@/lib/logger";
 import confetti from "canvas-confetti";
@@ -340,7 +335,7 @@ export default function AmbilPage() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="space-y-6">
-                    {/* Kode Display */}
+                    {/* Kode Ambil */}
                     <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-6">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                         <div className="flex items-center gap-3">

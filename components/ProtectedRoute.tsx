@@ -28,7 +28,6 @@ export function ProtectedRoute({
 
     // Check if role is allowed
     if (allowedRoles && role && !allowedRoles.includes(role)) {
-      // Redirect to unauthorized page or dashboard
       alert("Anda tidak memiliki akses ke halaman ini!");
       router.replace("/");
       return;

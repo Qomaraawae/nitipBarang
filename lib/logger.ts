@@ -55,7 +55,7 @@ export const logger = {
         message.includes('AUTH REGISTER');
       
       if (shouldSkip) {
-        return; // Jangan tampilkan log ini
+        return;
       }
       
       const sanitizedArgs = args.map(arg => sanitizeData(arg));
@@ -94,31 +94,14 @@ export const logger = {
   // Logger khusus untuk auth (dengan masking) - MODIFIKASI: nonaktifkan di development
   auth: {
     login: (email: string, role: string) => {
-      // Nonaktifkan log auth di console
-      // if (isDevelopment) {
-      //   const maskedEmail = maskEmail(email);
-      //   console.log('[AUTH LOGIN]:', `User ${maskedEmail} logged in as ${role}`);
-      // }
     },
     
     logout: (email: string | null) => {
-      // Nonaktifkan log auth di console
-      // if (isDevelopment) {
-      //   const maskedEmail = maskEmail(email);
-      //   console.log('[AUTH LOGOUT]:', `User ${maskedEmail} logged out`);
-      // }
     },
     
     register: (email: string, role: string) => {
-      // Nonaktifkan log auth di console
-      // if (isDevelopment) {
-      //   const maskedEmail = maskEmail(email);
-      //   console.log('[AUTH REGISTER]:', `User ${maskedEmail} registered as ${role}`);
-      // }
     },
     
-    // Untuk debugging internal saja (tidak untuk production)
-    // Ini sudah ada, tidak perlu dipanggil langsung dari luar
     debug: (data: any) => {
       if (isDevelopment && process.env.NEXT_PUBLIC_DEBUG_AUTH === 'true') {
         const sanitized = sanitizeData(data);

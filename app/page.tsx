@@ -15,11 +15,9 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -39,12 +37,9 @@ import {
   Search,
   History,
   Shield,
-  Calendar,
-  HelpCircle,
   ChevronRight,
   CheckCircle2,
   XCircle,
-  MoreVertical,
   Mail,
   Lock,
   AlertCircle,
@@ -436,7 +431,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-3">
               <ModeToggle />
 
-              {/* Account Button - Tampilkan berbeda berdasarkan status login */}
+              {/* Account Button */}
               {user ? (
                 // Jika sudah login: Tampilkan profile dropdown
                 <div className="relative">

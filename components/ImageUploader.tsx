@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 interface Props {
   onUpload: (url: string) => void;
-  compact?: boolean; // Untuk tampilan tombol plus saja
+  compact?: boolean;
 }
 
 export default function ImageUploader({ onUpload, compact = false }: Props) {
@@ -65,7 +65,7 @@ export default function ImageUploader({ onUpload, compact = false }: Props) {
     } finally {
       setUploading(false);
       if (e.target) {
-        e.target.value = ""; // Reset input
+        e.target.value = "";
       }
     }
   }, [onUpload]);
@@ -93,7 +93,6 @@ export default function ImageUploader({ onUpload, compact = false }: Props) {
           size="icon"
           onClick={handleClick}
           disabled={uploading}
-          // PERUBAHAN: border-solid menggantikan border-dashed
           className="h-12 w-12 rounded-full border-2 border-solid border-gray-300 hover:border-blue-500 hover:bg-blue-50"
           aria-label="Upload foto barang"
         >

@@ -1,4 +1,3 @@
-// lib/types.ts
 import { Timestamp } from "firebase/firestore";
 
 export interface Barang {

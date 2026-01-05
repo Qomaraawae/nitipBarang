@@ -103,7 +103,6 @@ export default function DetailBarang({ params }: PageProps) {
     try {
       await navigator.clipboard.writeText(barang.kode_ambil);
 
-      // TAMBAHKAN toast untuk notifikasi popup
       toast.success("Kode berhasil disalin!", {
         description: `Kode ${barang.kode_ambil} telah disalin ke clipboard`,
         duration: 3000,

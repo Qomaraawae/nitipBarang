@@ -1,5 +1,5 @@
 import { collection, CollectionReference } from "firebase/firestore";
-import { db } from "./firebaseConfig"; // ✅ Import db dari config
+import { db } from "./firebaseConfig";
 import { Barang } from "../types";
 
 // Export collection references

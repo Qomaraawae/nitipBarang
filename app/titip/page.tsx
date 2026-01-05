@@ -38,7 +38,6 @@ import {
   Camera,
   CheckCircle,
   Info,
-  Loader2,
 } from "lucide-react";
 import { logger } from "@/lib/logger";
 import confetti from "canvas-confetti";
@@ -123,10 +122,8 @@ export default function TitipPage() {
     }, 1000);
   };
 
-  // Effect untuk trigger confetti ketika dialog success dibuka
   useEffect(() => {
     if (showSuccessDialog) {
-      // Delay sedikit agar dialog muncul dulu baru confetti
       const timer = setTimeout(() => {
         triggerConfetti();
       }, 300);

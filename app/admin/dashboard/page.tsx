@@ -15,32 +15,26 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import {
   Package,
   PackageCheck,
   User,
-  Clock,
   LogOut,
   Home,
   Plus,
   Search,
   History,
-  Shield,
-  Calendar,
-  HelpCircle,
   ChevronRight,
   CheckCircle2,
   XCircle,
-  MoreVertical,
 } from "lucide-react";
 import { logger, maskEmail, maskUid } from "@/lib/logger";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 export default function Dashboard() {
-  const { user, role, userData, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const { barang, loading: dataLoading } = useBarangRealTime();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -125,7 +119,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-3">
               <ModeToggle />
 
-              {/* Profile Dropdown untuk desktop - Versi gradient */}
+              {/* Profile Dropdown Desktop */}
               <div className="hidden md:block relative">
                 <Button
                   variant="ghost"
@@ -150,7 +144,6 @@ export default function Dashboard() {
                       onClick={() => setShowProfileDropdown(false)}
                     />
                     <div className="absolute right-0 top-12 w-64 z-50">
-                      {/* VERSI GRADIENT: Background gradient ringan */}
                       <div className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl shadow-black/10 dark:shadow-black/20 animate-in slide-in-from-top-2">
                         <div className="p-4 border-b border-gray-100 dark:border-gray-700">
                           <div className="flex items-center gap-3">
@@ -200,7 +193,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Mobile Navigation - Hanya untuk admin */}
+          {/* Mobile Navigation, Hanya untuk admin */}
           {isAdmin && null}
         </div>
       </header>

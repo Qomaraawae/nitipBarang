@@ -53,7 +53,7 @@ export async function uploadToCloudinary(file: File): Promise<string> {
     const data = await response.json();
     logger.log("Upload successful", {
       fileName: file.name,
-      url: data.secure_url // URL akan di-sanitize otomatis
+      url: data.secure_url
     });
     
     return data.secure_url;

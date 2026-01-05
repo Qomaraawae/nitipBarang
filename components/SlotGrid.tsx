@@ -1,4 +1,4 @@
-import { Barang } from "@/types/barang"; // ✅ Fixed import path
+import { Barang } from "@/types/barang"; 
 
 interface SlotGridProps {
   barang: (Barang & { id: string })[];

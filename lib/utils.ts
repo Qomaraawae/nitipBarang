@@ -33,7 +33,7 @@ export function formatDate(date: Date): string {
 }
 
 export function formatPhoneNumber(phone: string): string {
-  // Hilangkan karakter non-digit
+  // menghilangkan karakter non-digit
   const cleaned = phone.replace(/\D/g, '');
   
   // Format: +62 8xx xxxx xxxx

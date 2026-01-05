@@ -59,7 +59,7 @@ export default function RegisterPage() {
         router.replace("/login");
       }, 1500);
     } catch (err: any) {
-      // GANTI console.error DENGAN LOGGER
+      // GLOGGER
       logger.error("Register failed", {
         errorCode: err.code,
         errorMessage: err.message,
