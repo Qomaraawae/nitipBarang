@@ -29,14 +29,12 @@ import {
   Package,
   PackageCheck,
   User,
-  Clock,
   LogOut,
   LogIn,
   Home,
   Plus,
   Search,
   History,
-  Shield,
   ChevronRight,
   CheckCircle2,
   XCircle,
@@ -53,7 +51,6 @@ export default function Dashboard() {
   const {
     user,
     role,
-    userData,
     loading: authLoading,
     showLoginModal,
     setShowLoginModal,
@@ -431,9 +428,8 @@ export default function Dashboard() {
             <div className="flex items-center gap-3">
               <ModeToggle />
 
-              {/* Account Button */}
+              {/* Hanya tampilkan profile dropdown jika user sudah login */}
               {user ? (
-                // Jika sudah login: Tampilkan profile dropdown
                 <div className="relative">
                   <Button
                     variant="ghost"
@@ -504,22 +500,8 @@ export default function Dashboard() {
                     </>
                   )}
                 </div>
-              ) : (
-                // Jika belum login: Tampilkan login button
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-2 text-muted-foreground hover:text-foreground hover:bg-accent"
-                  onClick={() => setShowLoginModal(true)}
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100">
-                      <LogIn className="h-4 w-4 text-blue-600" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden sm:inline">Login</span>
-                </Button>
-              )}
+              ) : // Kosongkan jika user belum login (tidak tampilkan apa-apa)
+              null}
             </div>
           </div>
         </div>
@@ -817,43 +799,102 @@ export default function Dashboard() {
             </div>
 
             {/* Features Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              <Card className="border">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
-                    <Shield className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="flex flex-wrap justify-center gap-6 mb-12">
+              {/* Slot Kosong - Card 1 */}
+              <Card className="border shadow-sm hover:shadow-md transition-shadow duration-300 w-full max-w-md">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center">
+                      <CheckCircle2 className="h-7 w-7 text-white" />
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-500 text-emerald-700 dark:text-emerald-400 font-semibold text-sm px-3 py-1.5"
+                    >
+                      {availableSlots}
+                    </Badge>
                   </div>
-                  <h3 className="font-bold text-lg mb-2">Aman & Terpercaya</h3>
-                  <p className="text-muted-foreground">
-                    Sistem keamanan berlapis untuk memastikan barang Anda selalu
-                    aman.
-                  </p>
+                  <CardTitle className="text-xl font-bold mb-2">
+                    Slot Kosong
+                  </CardTitle>
+                  <CardDescription className="text-base mb-4">
+                    Tersedia untuk penitipan barang baru.
+                  </CardDescription>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></div>
+                      <span className="text-muted-foreground">
+                        {availableSlots > 10
+                          ? "Banyak tersedia"
+                          : "Hampir penuh"}
+                      </span>
+                    </div>
+                    <div className="relative w-full h-2 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="absolute h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-500"
+                        style={{
+                          width: `${(availableSlots / totalSlots) * 100}%`,
+                        }}
+                      ></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-muted-foreground">
+                        Kapasitas tersisa
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {((availableSlots / totalSlots) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card className="border">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-4">
-                    <Clock className="h-6 w-6 text-green-600 dark:text-green-400" />
+              {/* Slot Perawatan - Card 2 */}
+              <Card className="border shadow-sm hover:shadow-md transition-shadow duration-300 w-full max-w-md">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center">
+                      <XCircle className="h-7 w-7 text-white" />
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="border-amber-500 text-amber-700 dark:text-amber-400 font-semibold text-sm px-3 py-1.5"
+                    >
+                      0
+                    </Badge>
                   </div>
-                  <h3 className="font-bold text-lg mb-2">24/7 Akses</h3>
-                  <p className="text-muted-foreground">
-                    Pantau status penitipan kapan saja melalui dashboard online.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center mb-4">
-                    <PackageCheck className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  <CardTitle className="text-xl font-bold mb-2">
+                    Slot Perawatan
+                  </CardTitle>
+                  <CardDescription className="text-base mb-4">
+                    Sedang dalam perbaikan atau maintenance.
+                  </CardDescription>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-2 flex-1">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                        <span className="text-sm">Berfungsi normal</span>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="border-emerald-500 text-emerald-700 dark:text-emerald-400 font-semibold text-sm px-3 py-1.5"
+                      >
+                        {totalSlots}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-2 flex-1">
+                        <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                        <span className="text-sm">Dalam perbaikan</span>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="border-amber-300 text-amber-700 dark:text-amber-400"
+                      >
+                        0
+                      </Badge>
+                    </div>
                   </div>
-                  <h3 className="font-bold text-lg mb-2">
-                    Pelacakan Real-time
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Lacak status barang Anda secara real-time dengan kode unik.
-                  </p>
                 </CardContent>
               </Card>
             </div>
