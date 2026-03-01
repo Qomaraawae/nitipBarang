@@ -32,7 +32,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    
+
     console.clear();
     console.log("🧪 === LOGIN PROCESS STARTED ===");
     console.log("📧 Email entered:", email);
@@ -43,9 +43,9 @@ export default function LoginPage() {
       const userData = await login(email, password);
 
       console.log("✅ Login function returned:", {
-        uid: userData.uid.substring(0, 8) + '...',
+        uid: userData.uid.substring(0, 8) + "...",
         email: userData.email,
-        role: userData.role
+        role: userData.role,
       });
 
       // Gunakan logger.auth yang aman
@@ -56,7 +56,7 @@ export default function LoginPage() {
       });
 
       console.log("🎉 Login successful, redirecting to dashboard");
-      
+
       // Redirect ke dashboard
       router.push("/");
     } catch (err: any) {
@@ -64,7 +64,7 @@ export default function LoginPage() {
       console.error("Error code:", err.code);
       console.error("Error message:", err.message);
       console.error("Full error:", err);
-      
+
       // GANTI console.error DENGAN LOGGER
       logger.error("Login failed", {
         errorCode: err.code,
@@ -183,9 +183,9 @@ export default function LoginPage() {
                 />
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-base font-medium" 
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-medium"
                 disabled={loading}
               >
                 {loading ? (
@@ -231,7 +231,7 @@ export default function LoginPage() {
         </Card>
 
         {/* Debug Info (only in development) */}
-        {process.env.NODE_ENV === 'development' && (
+        {process.env.NODE_ENV === "development" && (
           <Alert className="bg-blue-50 border-blue-200">
             <AlertDescription className="text-sm text-blue-800">
               <div className="font-medium mb-1">Debug Mode:</div>

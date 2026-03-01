@@ -49,6 +49,7 @@ interface SuccessData {
 }
 
 type SlotStatus = "selected" | "occupied" | "available";
+import { tambahHistori } from "@/lib/firebase/firestore";
 
 export default function TitipPage() {
   const { user } = useAuth();
@@ -174,30 +175,42 @@ export default function TitipPage() {
     }
 
     setLoading(true);
-    const kode = await generateKodeAmbil();
+  const kode = await generateKodeAmbil();
 
-    try {
-      // Simpan data ke Firebase
-      await addDoc(barangCollection, {
-        nama_pemilik: nama,
-        no_hp: hp,
-        slot: slot,
-        foto_url: fotoUrl,
-        waktu_masuk: serverTimestamp(),
-        status: "dititipkan" as const,
-        kode_ambil: kode,
-        created_at: serverTimestamp(),
-        user_id: user.uid,
-        created_by_email: user.email || "",
-      });
+  try {
+    // 1. Simpan data ke Firebase (BARANG)
+    await addDoc(barangCollection, {
+      nama_pemilik: nama,
+      no_hp: hp,
+      slot: slot,
+      foto_url: fotoUrl,
+      waktu_masuk: serverTimestamp(),
+      status: "dititipkan" as const,
+      kode_ambil: kode,
+      created_at: serverTimestamp(),
+      user_id: user.uid,
+      created_by_email: user.email || "",
+    });
 
-      // Tampilkan notifikasi sukses
-      setSuccessData({ nama, slot, kode });
-      setShowSuccessDialog(true);
+    // 🆕 2. TAMBAH KE HISTORI (PENTING!)
+    await tambahHistori({
+      userId: user.uid,
+      jenis: "titip",
+      namaBarang: nama, // Gunakan nama pemilik sebagai namaBarang
+      namaPemilik: nama,
+      slot: slot!, // slot tidak mungkin null di sini
+      kodeAmbil: kode,
+      status: "berhasil",
+      catatan: "Barang berhasil dititipkan"
+    });
 
-      toast.success("Barang berhasil dititipkan!", {
-        description: `Kode: ${kode}`,
-      });
+    // 3. Tampilkan notifikasi sukses
+    setSuccessData({ nama, slot, kode });
+    setShowSuccessDialog(true);
+
+    toast.success("Barang berhasil dititipkan!", {
+      description: `Kode: ${kode}`,
+    });
     } catch (err) {
       logger.error("Error saving barang:", {
         nama: nama,
@@ -254,7 +267,7 @@ export default function TitipPage() {
               <Link href="/">
                 <Button variant="ghost" className="gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  Kembali ke Dashboard
+                  Dashboard
                 </Button>
               </Link>
               <ModeToggle />

@@ -19,7 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { UserPlus, Mail, Lock, AlertCircle } from "lucide-react";
-import { logger } from "@/lib/logger"; // TAMBAHKAN IMPORT
+import { logger } from "@/lib/logger";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");

@@ -2,6 +2,22 @@
   "name": "nitipbarang",
   "version": "0.1.0",
   "private": true,
+  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",
+  "homepage": "https://github.com/Qomaraawae/nitipBarang#readme",
+  "bugs": {
+    "url": "https://github.com/Qomaraawae/nitipBarang/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Qomaraawae/nitipBarang.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -21,6 +37,7 @@
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "firebase": "^10.14.1",
     "framer-motion": "^12.23.26",
@@ -48,6 +65,5 @@
     "tailwindcss": "^4.1.18",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
-  },
-  "type": "module"
+  }
 }

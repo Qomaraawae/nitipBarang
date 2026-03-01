@@ -7,11 +7,7 @@ export function useSlotAvailability() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Query barang yang sedang dititipkan
-    const q = query(
-      barangCollection,
-      where("status", "==", "dititipkan")
-    );
+    const q = query(barangCollection, where("status", "==", "dititipkan"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const slots = snapshot.docs.map((doc) => doc.data().slot as number);

@@ -65,7 +65,7 @@ function isStrongPassword(password: string): {
   return { valid: true, message: "Password kuat" };
 }
 
-// Fungsi untuk mask UID (copy dari logger atau buat sederhana)
+// Fungsi untuk mask UID
 const maskUid = (uid: string): string => {
   if (!uid || uid.length < 8) return "[INVALID UID]";
   return `${uid.substring(0, 4)}...${uid.substring(uid.length - 4)}`;
@@ -88,7 +88,7 @@ async function createAdminUser(email: string, password: string) {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
-      password
+      password,
     );
     const user = userCredential.user;
 
@@ -144,7 +144,7 @@ async function createAdminUser(email: string, password: string) {
       console.error("1. Buka Firebase Console");
       console.error("2. Pilih Firestore Database > Rules");
       console.error(
-        "3. Pastikan rules mengizinkan write untuk authenticated users"
+        "3. Pastikan rules mengizinkan write untuk authenticated users",
       );
     } else {
       console.error(error.message);
@@ -170,7 +170,7 @@ async function promptCredentials(): Promise<{
         (password) => {
           rl.close();
           resolve({ email: email.trim(), password });
-        }
+        },
       );
     });
   });

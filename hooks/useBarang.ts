@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase/firebaseConfig";
 import { Barang } from "@/types/barang";
 
@@ -14,7 +20,7 @@ export function useBarangRealTime() {
       const q = query(
         barangRef,
         where("status", "==", "dititipkan"),
-        orderBy("waktu_masuk", "desc")
+        orderBy("waktu_masuk", "desc"),
       );
 
       const unsubscribe = onSnapshot(
@@ -24,7 +30,7 @@ export function useBarangRealTime() {
             id: doc.id,
             ...doc.data(),
           })) as (Barang & { id: string })[];
-          
+
           setBarang(data);
           setLoading(false);
           setError(null);
@@ -33,11 +39,11 @@ export function useBarangRealTime() {
           console.error("Error fetching barang:", {
             message: error.message,
             code: error.code,
-            name: error.name
+            name: error.name,
           });
           setError(error.message || "Gagal mengambil data barang");
           setLoading(false);
-        }
+        },
       );
 
       return () => {
@@ -75,7 +81,7 @@ export function useBarangByUser(userId: string) {
         barangRef,
         where("user_id", "==", userId),
         where("status", "==", "dititipkan"),
-        orderBy("waktu_masuk", "desc")
+        orderBy("waktu_masuk", "desc"),
       );
 
       const unsubscribe = onSnapshot(
@@ -85,7 +91,7 @@ export function useBarangByUser(userId: string) {
             id: doc.id,
             ...doc.data(),
           })) as (Barang & { id: string })[];
-          
+
           setBarang(data);
           setLoading(false);
           setError(null);
@@ -95,11 +101,11 @@ export function useBarangByUser(userId: string) {
             userId: userId,
             message: error.message,
             code: error.code,
-            name: error.name
+            name: error.name,
           });
           setError(error.message || "Gagal mengambil data barang pengguna");
           setLoading(false);
-        }
+        },
       );
 
       return () => {
@@ -108,7 +114,7 @@ export function useBarangByUser(userId: string) {
         } catch (err) {
           console.error("Error unsubscribing user barang:", {
             userId: userId,
-            error: err
+            error: err,
           });
         }
       };

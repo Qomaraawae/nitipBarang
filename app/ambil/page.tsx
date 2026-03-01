@@ -48,6 +48,7 @@ import {
 } from "lucide-react";
 import { logger } from "@/lib/logger";
 import confetti from "canvas-confetti";
+import { tambahHistori } from "@/lib/firebase/firestore";
 
 interface Barang {
   id: string;
@@ -58,6 +59,7 @@ interface Barang {
   foto_url?: string;
   status: string;
   waktu_masuk?: { toDate: () => Date };
+  user_id?: string;
 }
 
 export default function AmbilPage() {
@@ -85,7 +87,7 @@ export default function AmbilPage() {
 
       const q = query(
         barangCollection,
-        where("kode_ambil", "==", normalizedKode)
+        where("kode_ambil", "==", normalizedKode),
       );
       const snapshot = await getDocs(q);
 
@@ -135,6 +137,19 @@ export default function AmbilPage() {
         status: "diambil",
         waktu_keluar: serverTimestamp(),
       });
+      const userId = barang.user_id || "unknown-user"; // Fallback jika tidak ada
+
+      await tambahHistori({
+        userId: userId,
+        jenis: "ambil",
+        barangId: barang.id,
+        namaBarang: barang.nama_pemilik,
+        namaPemilik: barang.nama_pemilik,
+        slot: Number(barang.slot),
+        kodeAmbil: barang.kode_ambil,
+        status: "berhasil",
+        catatan: user ? `Barang diambil oleh ${user.email}` : "Barang diambil",
+      });
 
       // Confetti animation
       confetti({
@@ -157,7 +172,7 @@ export default function AmbilPage() {
       // Redirect setelah delay
       setTimeout(() => {
         router.push("/histori");
-      }, 0.005);
+      }, 2000); // Wait 2 detik
     } catch (err) {
       logger.error("Error updating barang status:", {
         barangId: barang.id,
@@ -200,7 +215,7 @@ export default function AmbilPage() {
             <Link href="/">
               <Button variant="ghost" className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
-                Kembali ke Dashboard
+                Dashboard
               </Button>
             </Link>
             <ModeToggle />

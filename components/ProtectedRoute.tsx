@@ -6,13 +6,13 @@ import { useEffect } from "react";
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: UserRole[]; // Jika tidak diisi, semua role bisa akses
-  requireAuth?: boolean; // Default true
+  requireAuth?: boolean;
 }
 
-export function ProtectedRoute({ 
-  children, 
+export function ProtectedRoute({
+  children,
   allowedRoles,
-  requireAuth = true 
+  requireAuth = true,
 }: ProtectedRouteProps) {
   const { user, role, loading } = useAuth();
   const router = useRouter();

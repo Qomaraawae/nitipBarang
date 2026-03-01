@@ -500,8 +500,7 @@ export default function Dashboard() {
                     </>
                   )}
                 </div>
-              ) : // Kosongkan jika user belum login (tidak tampilkan apa-apa)
-              null}
+              ) : null}
             </div>
           </div>
         </div>

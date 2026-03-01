@@ -1,416 +1,607 @@
 "use client";
+
 import { useAuth } from "@/context/AuthContext";
 import { useHistoriBarang } from "@/hooks/useHistoriBarang";
-import Link from "next/link";
-import Image from "next/image";
-import { useState } from "react";
-import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import {
-  Calendar,
-  Clock,
   Package,
+  PackageCheck,
   User,
+  Calendar,
   Hash,
-  CheckCircle,
+  MapPin,
+  Info,
+  ArrowLeft,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Filter,
+  Download,
+  RefreshCw,
 } from "lucide-react";
-
-type PeriodFilter = "semua" | "hari-ini" | "minggu-ini" | "bulan-ini";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ModeToggle } from "@/components/mode-toggle";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function HistoriPage() {
-  const { user, loading: authLoading } = useAuth();
-  const { barang, loading: dataLoading } = useHistoriBarang();
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodFilter>("semua");
+  const { user, role } = useAuth();
+  const { histori, loading } = useHistoriBarang();
 
-  // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground font-medium">Memuat...</p>
-        </div>
-      </div>
-    );
-  }
+  const [filteredHistori, setFilteredHistori] = useState<any[]>([]);
+  const [filterJenis, setFilterJenis] = useState<string>("semua");
+  const [filterStatus, setFilterStatus] = useState<string>("semua");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("terbaru");
 
-  if (!user) return null;
+  // Apply filters
+  useEffect(() => {
+    let result = [...histori];
 
-  const hitungDurasi = (masuk: any, keluar: any) => {
-    if (!masuk || !keluar) return "-";
+    // Filter by jenis
+    if (filterJenis !== "semua") {
+      result = result.filter((item) => item.jenis === filterJenis);
+    }
 
-    try {
-      const durasiMs = keluar.toMillis() - masuk.toMillis();
-      const durasiJam = Math.floor(durasiMs / (1000 * 60 * 60));
-      const durasiMenit = Math.floor(
-        (durasiMs % (1000 * 60 * 60)) / (1000 * 60)
+    // Filter by status
+    if (filterStatus !== "semua") {
+      result = result.filter((item) => item.status === filterStatus);
+    }
+
+    // Search filter
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (item) =>
+          item.namaBarang?.toLowerCase().includes(query) ||
+          item.namaPemilik?.toLowerCase().includes(query) ||
+          item.kodeAmbil?.toLowerCase().includes(query) ||
+          item.catatan?.toLowerCase().includes(query),
       );
+    }
 
-      if (durasiJam > 0) {
-        return `${durasiJam}j ${durasiMenit}m`;
-      }
-      return `${durasiMenit}m`;
-    } catch (error) {
-      return "-";
+    // Sort
+    if (sortBy === "terbaru") {
+      result.sort((a, b) => b.tanggal?.seconds - a.tanggal?.seconds);
+    } else if (sortBy === "terlama") {
+      result.sort((a, b) => a.tanggal?.seconds - b.tanggal?.seconds);
+    } else if (sortBy === "nama-az") {
+      result.sort((a, b) =>
+        (a.namaBarang || "").localeCompare(b.namaBarang || ""),
+      );
+    } else if (sortBy === "nama-za") {
+      result.sort((a, b) =>
+        (b.namaBarang || "").localeCompare(a.namaBarang || ""),
+      );
+    }
+
+    setFilteredHistori(result);
+  }, [histori, filterJenis, filterStatus, searchQuery, sortBy]);
+
+  const handleRefresh = () => {
+    // Force re-fetch by changing key or using refetch if available
+    window.location.reload();
+  };
+
+  const handleExport = () => {
+    // Simple export to CSV
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      "Tanggal,Jenis,Status,Nama Barang,Nama Pemilik,Kode Ambil,Slot,Catatan\n" +
+      filteredHistori
+        .map(
+          (item) =>
+            `${format(item.tanggal?.toDate(), "dd/MM/yyyy HH:mm", { locale: id })},` +
+            `${item.jenis},` +
+            `${item.status},` +
+            `"${item.namaBarang}",` +
+            `"${item.namaPemilik}",` +
+            `${item.kodeAmbil},` +
+            `${item.slot},` +
+            `"${item.catatan || "-"}"`,
+        )
+        .join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `histori-transaksi-${new Date().toISOString().split("T")[0]}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "berhasil":
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case "gagal":
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Clock className="h-4 w-4 text-yellow-500" />;
     }
   };
 
-  // Filter barang berdasarkan periode
-  const filterBarangByPeriod = () => {
-    if (selectedPeriod === "semua") return barang;
-
-    return barang.filter((b) => {
-      if (!b.waktu_keluar) return false;
-
-      const tanggalKeluar = b.waktu_keluar.toDate();
-      const sekarang = new Date();
-
-      switch (selectedPeriod) {
-        case "hari-ini":
-          return tanggalKeluar.toDateString() === sekarang.toDateString();
-
-        case "minggu-ini":
-          const mingguLalu = new Date();
-          mingguLalu.setDate(mingguLalu.getDate() - 7);
-          return tanggalKeluar >= mingguLalu;
-
-        case "bulan-ini":
-          return (
-            tanggalKeluar.getMonth() === sekarang.getMonth() &&
-            tanggalKeluar.getFullYear() === sekarang.getFullYear()
-          );
-
-        default:
-          return true;
-      }
-    });
+  const getJenisColor = (jenis: string) => {
+    switch (jenis) {
+      case "titip":
+        return "bg-gradient-to-br from-blue-500 to-indigo-600";
+      case "ambil":
+        return "bg-gradient-to-br from-green-500 to-emerald-600";
+      default:
+        return "bg-gradient-to-br from-gray-500 to-gray-600";
+    }
   };
 
-  const filteredBarang = filterBarangByPeriod();
+  const getJenisLabel = (jenis: string) => {
+    switch (jenis) {
+      case "titip":
+        return "Penitipan";
+      case "ambil":
+        return "Pengambilan";
+      default:
+        return jenis;
+    }
+  };
 
-  // Hitung statistik
-  const hariIniCount = barang.filter((b) => {
-    if (!b.waktu_keluar) return false;
-    const today = new Date().toDateString();
-    return b.waktu_keluar.toDate().toDateString() === today;
-  }).length;
-
-  const mingguIniCount = barang.filter((b) => {
-    if (!b.waktu_keluar) return false;
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return b.waktu_keluar.toDate() >= weekAgo;
-  }).length;
-
-  const periodButtons = [
-    {
-      id: "semua" as PeriodFilter,
-      label: "Semua",
-      color: "bg-purple-100 dark:bg-purple-900/30",
-    },
-    {
-      id: "hari-ini" as PeriodFilter,
-      label: "Hari Ini",
-      color: "bg-green-100 dark:bg-green-900/30",
-    },
-    {
-      id: "minggu-ini" as PeriodFilter,
-      label: "Minggu Ini",
-      color: "bg-blue-100 dark:bg-blue-900/30",
-    },
-    {
-      id: "bulan-ini" as PeriodFilter,
-      label: "Bulan Ini",
-      color: "bg-orange-100 dark:bg-orange-900/30",
-    },
-  ];
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "berhasil":
+        return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300";
+      case "gagal":
+        return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300";
+      default:
+        return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300";
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/">
-              <Button variant="ghost" className="gap-2">
-                <Calendar className="h-4 w-4" />
-                Kembali ke Dashboard
-              </Button>
-            </Link>
-            <ModeToggle />
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Clock className="h-7 w-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                Histori Aktivitas
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Riwayat barang yang sudah diambil
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Histori
-              </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {dataLoading ? "..." : barang.length}
-              </div>
-              <p className="text-xs text-muted-foreground">Semua riwayat</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Hari Ini</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {dataLoading ? "..." : hariIniCount}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Pengambilan hari ini
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Minggu Ini</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {dataLoading ? "..." : mingguIniCount}
-              </div>
-              <p className="text-xs text-muted-foreground">7 hari terakhir</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filter Periode */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Filter Periode</CardTitle>
-            <CardDescription>Pilih rentang waktu histori</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {periodButtons.map((period) => (
-                <Button
-                  key={period.id}
-                  onClick={() => setSelectedPeriod(period.id)}
-                  variant={selectedPeriod === period.id ? "default" : "outline"}
-                  className={selectedPeriod === period.id ? "" : period.color}
-                >
-                  {period.label}
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Left: Logo & Back Button */}
+            <div className="flex items-center gap-3">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Dashboard
                 </Button>
-              ))}
+              </Link>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </header>
 
-        {/* Histori List */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Daftar Riwayat</CardTitle>
-                <CardDescription>
-                  {filteredBarang.length} items ditemukan
-                </CardDescription>
-              </div>
-              <Badge variant="outline" className="text-sm">
-                {filteredBarang.length} Items
+      {/* Main Content */}
+      <div className="container mx-auto px-4 lg:px-6 py-8">
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Histori</h1>
+              <p className="text-muted-foreground">
+                {role === "admin"
+                  ? "Semua Histori Aktivitas"
+                  : "Histori transaksi barang Anda"}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="gap-1">
+                <Package className="h-3 w-3" />
+                {histori.length} transaksi
               </Badge>
+              {filteredHistori.length !== histori.length && (
+                <Badge variant="secondary" className="gap-1">
+                  <Filter className="h-3 w-3" />
+                  {filteredHistori.length} hasil filter
+                </Badge>
+              )}
             </div>
-          </CardHeader>
-          <CardContent>
-            {dataLoading ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-                <p className="text-muted-foreground">Memuat histori...</p>
-              </div>
-            ) : filteredBarang.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
-                  <Clock className="h-10 w-10 text-muted-foreground" />
+          </div>
+
+          {/* Filter Section */}
+          <Card className="mb-6 border">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* Search */}
+                <div className="flex-1">
+                  <Label htmlFor="search" className="mb-2 block">
+                    Cari transaksi
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="search"
+                      placeholder="Cari berdasarkan nama, kode, atau catatan..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-lg font-medium mb-2">
-                  {selectedPeriod === "semua"
-                    ? "Belum ada histori"
-                    : "Tidak ada data untuk periode ini"}
-                </h3>
-                <p className="text-muted-foreground text-sm text-center">
-                  {selectedPeriod === "semua"
-                    ? "Riwayat pengambilan barang akan muncul di sini"
-                    : "Coba pilih periode lain untuk melihat data"}
-                </p>
+
+                {/* Jenis Filter */}
+                <div>
+                  <Label htmlFor="filter-jenis" className="mb-2 block">
+                    Jenis
+                  </Label>
+                  <Select value={filterJenis} onValueChange={setFilterJenis}>
+                    <SelectTrigger
+                      id="filter-jenis"
+                      className="w-full md:w-[180px]"
+                    >
+                      <SelectValue placeholder="Semua jenis" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="semua">Semua Jenis</SelectItem>
+                      <SelectItem value="titip">Penitipan</SelectItem>
+                      <SelectItem value="ambil">Pengambilan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status Filter */}
+                <div>
+                  <Label htmlFor="filter-status" className="mb-2 block">
+                    Status
+                  </Label>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger
+                      id="filter-status"
+                      className="w-full md:w-[180px]"
+                    >
+                      <SelectValue placeholder="Semua status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="semua">Semua Status</SelectItem>
+                      <SelectItem value="berhasil">Berhasil</SelectItem>
+                      <SelectItem value="gagal">Gagal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sort Filter */}
+                <div>
+                  <Label htmlFor="sort-by" className="mb-2 block">
+                    Urutkan
+                  </Label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger id="sort-by" className="w-full md:w-[180px]">
+                      <SelectValue placeholder="Terbaru" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="terbaru">Terbaru → Terlama</SelectItem>
+                      <SelectItem value="terlama">Terlama → Terbaru</SelectItem>
+                      <SelectItem value="nama-az">Nama A-Z</SelectItem>
+                      <SelectItem value="nama-za">Nama Z-A</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredBarang.map((b) => (
-                  <Card key={b.id} className="overflow-hidden">
-                    <CardContent className="p-6">
-                      <div className="flex flex-col md:flex-row gap-6">
-                        {/* Foto */}
-                        <div className="flex-shrink-0">
-                          {b.foto_url ? (
-                            <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
-                              <Image
-                                src={b.foto_url}
-                                alt="Foto barang"
-                                fill
-                                className="object-cover"
-                                sizes="96px"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center border">
-                              <Package className="h-10 w-10 text-muted-foreground" />
-                            </div>
-                          )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <Card key={i} className="border">
+                <CardContent className="p-6">
+                  <Skeleton className="h-6 w-1/4 mb-4" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredHistori.length === 0 ? (
+          <Card className="border">
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <Info className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {searchQuery ||
+                filterJenis !== "semua" ||
+                filterStatus !== "semua"
+                  ? "Tidak ada hasil yang cocok"
+                  : "Belum ada transaksi"}
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                {searchQuery ||
+                filterJenis !== "semua" ||
+                filterStatus !== "semua"
+                  ? "Coba ubah filter atau kata kunci pencarian"
+                  : role === "admin"
+                    ? "Belum ada transaksi di sistem"
+                    : "Anda belum melakukan transaksi penitipan atau pengambilan"}
+              </p>
+              {(searchQuery ||
+                filterJenis !== "semua" ||
+                filterStatus !== "semua") && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilterJenis("semua");
+                    setFilterStatus("semua");
+                  }}
+                >
+                  Reset Filter
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Transaction List */}
+            <div className="space-y-4 mb-8">
+              {filteredHistori.map((item) => (
+                <Card
+                  key={item.id}
+                  className="border hover:shadow-md transition-shadow"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        {/* ICON HANYA UNTUK "AMBIL" - GREEN */}
+                        <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-green-500 to-emerald-600">
+                          <PackageCheck className="h-6 w-6 text-white" />
                         </div>
-
-                        {/* Info */}
-                        <div className="flex-1 space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Pemilik */}
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm font-medium text-muted-foreground">
-                                  Pemilik
-                                </span>
-                              </div>
-                              <p className="text-lg font-bold">
-                                {b.nama_pemilik}
-                              </p>
-                            </div>
-
-                            {/* Slot & Kode */}
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <Hash className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm font-medium text-muted-foreground">
-                                  Slot & Kode
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-base">
-                                  {b.slot || "S"}
-                                </Badge>
-                                <code className="text-sm font-mono bg-secondary px-2 py-1 rounded">
-                                  {b.kode_ambil || "N/A"}
-                                </code>
-                              </div>
-                            </div>
-
-                            {/* Status */}
-                            <div>
-                              <div className="text-sm font-medium text-muted-foreground mb-1">
-                                Status
-                              </div>
-                              <Badge
-                                variant={b.waktu_keluar ? "default" : "outline"}
-                                className={
-                                  b.waktu_keluar
-                                    ? "bg-green-100 text-green-800 hover:bg-green-100 border-green-200 dark:bg-green-900/30 dark:text-green-300"
-                                    : ""
-                                }
-                              >
-                                {b.waktu_keluar ? (
-                                  <span className="flex items-center gap-1">
-                                    <CheckCircle className="h-3 w-3" />
-                                    Sudah Diambil
-                                  </span>
-                                ) : (
-                                  "Masih Dititipkan"
-                                )}
-                              </Badge>
-                            </div>
-
-                            {/* Waktu */}
-                            <div>
-                              <div className="text-sm font-medium text-muted-foreground mb-1">
-                                Waktu
-                              </div>
-                              <p className="text-sm font-medium">
-                                {b.waktu_keluar
-                                  ?.toDate()
-                                  .toLocaleString("id-ID", {
-                                    day: "numeric",
-                                    month: "short",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  }) ||
-                                  b.waktu_masuk
-                                    ?.toDate()
-                                    .toLocaleString("id-ID", {
-                                      day: "numeric",
-                                      month: "short",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    }) ||
-                                  "-"}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Durasi */}
-                          <Separator />
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-purple-600" />
-                              <span className="text-sm font-medium text-muted-foreground">
-                                Durasi
-                              </span>
-                            </div>
-                            <Badge variant="outline" className="font-medium">
-                              {hitungDurasi(b.waktu_masuk, b.waktu_keluar)}
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-bold text-lg">
+                              {item.namaBarang}
+                            </h3>
+                            {/* BADGE HANYA "SUDAH DIAMBIL" */}
+                            <Badge
+                              variant="outline"
+                              className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300"
+                            >
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <span className="ml-1">Sudah Diambil</span>
                             </Badge>
                           </div>
+                          <p className="text-sm text-muted-foreground">
+                            Barang sudah diambil • Kode: {item.kodeAmbil}
+                            {role === "admin" && item.userId && (
+                              <span className="ml-2 text-xs bg-muted px-2 py-0.5 rounded">
+                                User ID: {item.userId.substring(0, 8)}...
+                              </span>
+                            )}
+                          </p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">
+                          {item.tanggal
+                            ? format(item.tanggal.toDate(), "dd MMM yyyy", {
+                                locale: id,
+                              })
+                            : "Tanggal tidak tersedia"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.tanggal
+                            ? format(item.tanggal.toDate(), "HH:mm", {
+                                locale: id,
+                              })
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
 
-          {filteredBarang.length > 0 && (
-            <CardFooter className="border-t px-6 py-4">
-              <p className="text-sm text-muted-foreground">
-                Menampilkan {filteredBarang.length} dari {barang.length} riwayat
-              </p>
-            </CardFooter>
-          )}
-        </Card>
+                    <Separator className="my-4" />
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 bg-muted rounded-lg">
+                          <Hash className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            Kode Ambil
+                          </p>
+                          <p className="font-mono font-bold text-sm">
+                            {item.kodeAmbil}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 bg-muted rounded-lg">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Slot</p>
+                          <p className="font-medium text-sm">
+                            Slot {item.slot}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 bg-muted rounded-lg">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            Tanggal Pengambilan
+                          </p>
+                          <p className="font-medium text-sm">
+                            {item.tanggal
+                              ? format(
+                                  item.tanggal.toDate(),
+                                  "dd/MM/yy HH:mm",
+                                  { locale: id },
+                                )
+                              : "Tidak tersedia"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 bg-muted rounded-lg">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            Pemilik
+                          </p>
+                          <p className="font-medium text-sm">
+                            {item.namaPemilik}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {item.catatan && (
+                      <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                          <p className="text-sm font-medium">
+                            Catatan Pengambilan:
+                          </p>
+                        </div>
+                        <p className="text-sm text-muted-foreground pl-5">
+                          {item.catatan}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Stats Card */}
+            <Card className="border">
+              <CardHeader>
+                <CardTitle>Statistik Transaksi</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-muted/30 rounded-lg">
+                    <p className="text-2xl font-bold">
+                      {filteredHistori.length}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Total Transaksi
+                    </p>
+                  </div>
+                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-2xl font-bold">
+                      {
+                        filteredHistori.filter((h) => h.jenis === "titip")
+                          .length
+                      }
+                    </p>
+                    <p className="text-sm text-muted-foreground">Penitipan</p>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <p className="text-2xl font-bold">
+                      {
+                        filteredHistori.filter((h) => h.jenis === "ambil")
+                          .length
+                      }
+                    </p>
+                    <p className="text-sm text-muted-foreground">Pengambilan</p>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <p className="text-2xl font-bold">
+                      {
+                        filteredHistori.filter((h) => h.status === "berhasil")
+                          .length
+                      }
+                    </p>
+                    <p className="text-sm text-muted-foreground">Berhasil</p>
+                  </div>
+                </div>
+
+                {/* Additional Stats for Admin */}
+                {role === "admin" && (
+                  <div className="mt-6 pt-6 border-t">
+                    <h4 className="text-sm font-medium mb-3">
+                      Distribusi User
+                    </h4>
+                    <div className="space-y-2">
+                      {(() => {
+                        const userCounts: Record<string, number> = {};
+                        filteredHistori.forEach((item) => {
+                          userCounts[item.userId] =
+                            (userCounts[item.userId] || 0) + 1;
+                        });
+
+                        const sortedUsers = Object.entries(userCounts)
+                          .sort(([, a], [, b]) => b - a)
+                          .slice(0, 5);
+
+                        return sortedUsers.map(([userId, count]) => (
+                          <div
+                            key={userId}
+                            className="flex items-center justify-between"
+                          >
+                            <span className="text-sm text-muted-foreground truncate max-w-[200px]">
+                              {userId.substring(0, 16)}...
+                            </span>
+                            <Badge variant="outline">{count} transaksi</Badge>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </div>
+  );
+}
+
+// Search icon component
+function Search(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
   );
 }

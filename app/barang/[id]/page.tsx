@@ -209,7 +209,7 @@ export default function DetailBarang({ params }: PageProps) {
               <Link href="/">
                 <Button variant="ghost" className="gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  Kembali ke Dashboard
+                  Dashboard
                 </Button>
               </Link>
               <ModeToggle />
