@@ -41,11 +41,14 @@ import {
   Mail,
   Lock,
   AlertCircle,
+  Wrench,
 } from "lucide-react";
 import { logger, maskEmail, maskUid } from "@/lib/logger";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import AdminSlotManager from "@/components/AdminSlotManager";
+import { useSlotConditions } from "@/hooks/useSlotConditions";
 
 export default function Dashboard() {
   const {
@@ -58,6 +61,10 @@ export default function Dashboard() {
   const { barang, loading: dataLoading } = useBarangRealTime();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showSlotManager, setShowSlotManager] = useState(false);
+
+  // ← ambil data kondisi slot untuk statistik publik
+  const { rusakSlots, maintenanceSlots } = useSlotConditions();
 
   // State untuk login modal
   const [loginEmail, setLoginEmail] = useState("");
@@ -65,7 +72,6 @@ export default function Dashboard() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
 
-  // LOG USER LOGIN SECURELY
   useEffect(() => {
     if (user && !authLoading) {
       logger.auth.login(user.email || "", role || "user");
@@ -90,16 +96,11 @@ export default function Dashboard() {
     setLoginLoading(true);
 
     try {
-      // Login dan dapatkan user data dengan role
       const userData = await login(loginEmail, loginPassword);
-
       logger.auth.login(userData.email || "", userData.role);
-
       toast.success("Login berhasil!", {
         description: `Selamat datang ${userData.email}`,
       });
-
-      // Reset form dan tutup modal
       setLoginEmail("");
       setLoginPassword("");
       setShowLoginModal(false);
@@ -110,7 +111,6 @@ export default function Dashboard() {
         email: loginEmail,
       });
 
-      // Handle specific error codes
       if (
         err.code === "auth/user-not-found" ||
         err.code === "auth/wrong-password" ||
@@ -128,7 +128,6 @@ export default function Dashboard() {
         setLoginError("Login gagal. Coba lagi.");
         toast.error("Login gagal");
       }
-
       setLoginLoading(false);
     }
   };
@@ -163,7 +162,10 @@ export default function Dashboard() {
 
   const totalSlots = 50;
   const occupiedSlots = barang.length;
-  const availableSlots = totalSlots - occupiedSlots;
+  // ← slot tersedia dikurangi yang rusak/maintenance
+  const unavailableCount =
+    occupiedSlots + rusakSlots.length + maintenanceSlots.length;
+  const availableSlots = totalSlots - unavailableCount;
   const slotUsagePercentage = Math.round((occupiedSlots / totalSlots) * 100);
 
   return (
@@ -185,7 +187,6 @@ export default function Dashboard() {
           p-4 sm:p-6 md:p-8
         "
         >
-          {/* Background gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-purple-50/30 dark:from-blue-900/20 dark:via-transparent dark:to-purple-900/20 rounded-lg -z-10" />
 
           <DialogHeader className="px-2 sm:px-4">
@@ -197,25 +198,10 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            <DialogTitle
-              className="
-              text-xl sm:text-2xl md:text-3xl 
-              text-center 
-              text-gray-900 dark:text-gray-50 
-              font-bold
-              mb-2
-            "
-            >
+            <DialogTitle className="text-xl sm:text-2xl md:text-3xl text-center text-gray-900 dark:text-gray-50 font-bold mb-2">
               Login ke Sistem
             </DialogTitle>
-            <DialogDescription
-              className="
-              text-sm sm:text-base md:text-lg 
-              text-center 
-              text-gray-700 dark:text-gray-300
-              px-2 sm:px-4
-            "
-            >
+            <DialogDescription className="text-sm sm:text-base md:text-lg text-center text-gray-700 dark:text-gray-300 px-2 sm:px-4">
               Masukkan email dan password Anda untuk mengakses sistem
             </DialogDescription>
           </DialogHeader>
@@ -225,14 +211,7 @@ export default function Dashboard() {
             className="space-y-6 sm:space-y-8 px-2 sm:px-4"
           >
             {loginError && (
-              <div
-                className="
-                bg-red-500/20 backdrop-blur-md 
-                border border-red-500/40 
-                rounded-xl 
-                p-4 sm:p-5
-              "
-              >
+              <div className="bg-red-500/20 backdrop-blur-md border border-red-500/40 rounded-xl p-4 sm:p-5">
                 <div className="flex items-center gap-3 text-red-800 dark:text-red-300">
                   <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
                   <span className="font-medium text-sm sm:text-base">
@@ -247,11 +226,7 @@ export default function Dashboard() {
                 <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600 dark:text-gray-400" />
                 <Label
                   htmlFor="modal-email"
-                  className="
-                  text-gray-800 dark:text-gray-200 
-                  font-medium
-                  text-base sm:text-lg
-                "
+                  className="text-gray-800 dark:text-gray-200 font-medium text-base sm:text-lg"
                 >
                   Email
                 </Label>
@@ -264,21 +239,7 @@ export default function Dashboard() {
                 onChange={(e) => setLoginEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="
-                  bg-white/70 dark:bg-gray-800/70 
-                  border-gray-400/50 dark:border-gray-600/60 
-                  backdrop-blur-lg 
-                  focus:ring-2 focus:ring-blue-500/60 
-                  focus:border-blue-500/60 
-                  transition-all duration-200
-                  h-12 sm:h-14
-                  text-base sm:text-lg
-                  placeholder:text-gray-500/70 dark:placeholder:text-gray-400/70
-                  text-gray-900 dark:text-gray-100
-                  px-4
-                  rounded-xl
-                  shadow-sm
-                "
+                className="bg-white/70 dark:bg-gray-800/70 border-gray-400/50 dark:border-gray-600/60 backdrop-blur-lg focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/60 transition-all duration-200 h-12 sm:h-14 text-base sm:text-lg placeholder:text-gray-500/70 dark:placeholder:text-gray-400/70 text-gray-900 dark:text-gray-100 px-4 rounded-xl shadow-sm"
               />
             </div>
 
@@ -287,11 +248,7 @@ export default function Dashboard() {
                 <Lock className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600 dark:text-gray-400" />
                 <Label
                   htmlFor="modal-password"
-                  className="
-                  text-gray-800 dark:text-gray-200 
-                  font-medium
-                  text-base sm:text-lg
-                "
+                  className="text-gray-800 dark:text-gray-200 font-medium text-base sm:text-lg"
                 >
                   Password
                 </Label>
@@ -304,43 +261,13 @@ export default function Dashboard() {
                 onChange={(e) => setLoginPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="
-                  bg-white/70 dark:bg-gray-800/70 
-                  border-gray-400/50 dark:border-gray-600/60 
-                  backdrop-blur-lg 
-                  focus:ring-2 focus:ring-blue-500/60 
-                  focus:border-blue-500/60 
-                  transition-all duration-200
-                  h-12 sm:h-14
-                  text-base sm:text-lg
-                  placeholder:text-gray-500/70 dark:placeholder:text-gray-400/70
-                  text-gray-900 dark:text-gray-100
-                  px-4
-                  rounded-xl
-                  shadow-sm
-                "
+                className="bg-white/70 dark:bg-gray-800/70 border-gray-400/50 dark:border-gray-600/60 backdrop-blur-lg focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500/60 transition-all duration-200 h-12 sm:h-14 text-base sm:text-lg placeholder:text-gray-500/70 dark:placeholder:text-gray-400/70 text-gray-900 dark:text-gray-100 px-4 rounded-xl shadow-sm"
               />
             </div>
 
             <Button
               type="submit"
-              className="
-                w-full 
-                bg-gradient-to-r from-blue-600 to-indigo-600 
-                hover:from-blue-700 hover:to-indigo-700 
-                active:from-blue-800 active:to-indigo-800
-                text-white 
-                shadow-xl 
-                backdrop-blur-sm 
-                border-0 
-                hover:shadow-2xl 
-                transition-all duration-300 
-                font-bold
-                text-base sm:text-lg
-                h-14 sm:h-16
-                rounded-xl
-                mt-2
-              "
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:from-blue-800 active:to-indigo-800 text-white shadow-xl backdrop-blur-sm border-0 hover:shadow-2xl transition-all duration-300 font-bold text-base sm:text-lg h-14 sm:h-16 rounded-xl mt-2"
               disabled={loginLoading}
             >
               {loginLoading ? (
@@ -359,48 +286,56 @@ export default function Dashboard() {
             </Button>
           </form>
 
-          {/* Footer link */}
-          <div
-            className="
-            pt-6 sm:pt-8 
-            border-t border-gray-300/50 dark:border-gray-700/50 
-            text-center
-            mt-4 sm:mt-6
-            px-2 sm:px-4
-          "
-          >
-            <p
-              className="
-              text-sm sm:text-base md:text-lg
-              text-gray-700 dark:text-gray-300
-            "
-            >
+          <div className="pt-6 sm:pt-8 border-t border-gray-300/50 dark:border-gray-700/50 text-center mt-4 sm:mt-6 px-2 sm:px-4">
+            <p className="text-sm sm:text-base md:text-lg text-gray-700 dark:text-gray-300">
               Belum punya akun?{" "}
               <Link
                 href="/register"
-                className="
-                  text-blue-600 dark:text-blue-400 
-                  hover:text-blue-700 dark:hover:text-blue-300 
-                  font-semibold 
-                  underline-offset-4 
-                  hover:underline 
-                  transition-colors
-                  text-base sm:text-lg
-                "
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold underline-offset-4 hover:underline transition-colors text-base sm:text-lg"
                 onClick={() => setShowLoginModal(false)}
               >
                 Daftar akun baru
               </Link>
             </p>
-            <p
-              className="
-              text-xs sm:text-sm 
-              text-gray-600 dark:text-gray-400 
-              mt-3
-            "
-            >
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-3">
               Lupa password? Hubungi administrator sistem
             </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin Slot Manager Dialog */}
+      <Dialog open={showSlotManager} onOpenChange={setShowSlotManager}>
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+          {/* Background dengan efek blur */}
+          <div className="absolute inset-0 overflow-hidden rounded-lg">
+            <div
+              className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600"
+              style={{
+                filter: "blur(40px)",
+                transform: "scale(1.2)",
+                opacity: 0.6,
+              }}
+            />
+            {/* Overlay gelap untuk kontras */}
+            <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/70 backdrop-blur-sm" />
+          </div>
+
+          {/* Konten di atas background blur */}
+          <div className="relative z-10">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+                <Wrench className="h-5 w-5 text-orange-500" />
+                Kelola Kondisi Slot Loker
+              </DialogTitle>
+              <DialogDescription>
+                Tandai slot yang rusak atau sedang maintenance agar tidak bisa
+                dipilih pengguna.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-2">
+              <AdminSlotManager />
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -409,7 +344,6 @@ export default function Dashboard() {
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="flex items-center justify-between h-16">
-            {/* Left: Logo & Brand */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Package className="h-5 w-5 text-white" />
@@ -424,11 +358,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Right: Actions */}
             <div className="flex items-center gap-3">
               <ModeToggle />
-
-              {/* Hanya tampilkan profile dropdown jika user sudah login */}
               {user ? (
                 <div className="relative">
                   <Button
@@ -446,7 +377,6 @@ export default function Dashboard() {
                     <ChevronDown className="h-3 w-3" />
                   </Button>
 
-                  {/* Dropdown Menu */}
                   {showProfileDropdown && (
                     <>
                       <div
@@ -509,9 +439,8 @@ export default function Dashboard() {
       {/* ==================== MAIN CONTENT ==================== */}
       <div className="container mx-auto px-4 lg:px-6 py-6">
         {user ? (
-          // KONTEN UNTUK USER YANG SUDAH LOGIN
           <>
-            {/* Welcome Section */}
+            {/* Welcome Section untuk non-admin */}
             {!isAdmin && (
               <Card className="mb-6 border shadow-sm">
                 <CardContent className="pt-6">
@@ -597,20 +526,40 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground">
                       Dari {totalSlots} slot total
                     </p>
-                    {availableSlots <= 10 && (
-                      <Badge variant="outline" className="mt-2">
-                        ⚠️ Kapasitas hampir penuh
-                      </Badge>
+                    {/* tampilkan info rusak/maintenance jika ada */}
+                    {(rusakSlots.length > 0 || maintenanceSlots.length > 0) && (
+                      <div className="mt-2 space-y-1">
+                        {rusakSlots.length > 0 && (
+                          <Badge
+                            variant="destructive"
+                            className="text-xs gap-1"
+                          >
+                            {rusakSlots.length} slot rusak
+                          </Badge>
+                        )}
+                        {maintenanceSlots.length > 0 && (
+                          <Badge className="text-xs gap-1 bg-amber-500">
+                            {maintenanceSlots.length} maintenance
+                          </Badge>
+                        )}
+                      </div>
                     )}
+                    {availableSlots <= 10 &&
+                      rusakSlots.length === 0 &&
+                      maintenanceSlots.length === 0 && (
+                        <Badge variant="outline" className="mt-2">
+                          ⚠️ Kapasitas hampir penuh
+                        </Badge>
+                      )}
                   </CardContent>
                 </Card>
               </div>
             )}
 
-            {/* Action Buttons for Admin */}
+            {/* Action Buttons for Admin — tambah tombol Kelola Slot */}
             {isAdmin && (
               <div className="mb-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <Link href="/titip">
                     <Button
                       variant="outline"
@@ -655,6 +604,27 @@ export default function Dashboard() {
                       </span>
                     </Button>
                   </Link>
+
+                  {/* ← tombol Kelola Slot */}
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto py-6 flex-col gap-3 border-orange-200 hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/20 relative"
+                    onClick={() => setShowSlotManager(true)}
+                  >
+                    {/* Badge notif jika ada slot bermasalah */}
+                    {rusakSlots.length + maintenanceSlots.length > 0 && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                        {rusakSlots.length + maintenanceSlots.length}
+                      </span>
+                    )}
+                    <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                      <Wrench className="h-8 w-8 text-orange-600" />
+                    </div>
+                    <span className="font-bold text-lg">Kelola Slot</span>
+                    <span className="text-sm text-muted-foreground">
+                      Rusak / Maintenance
+                    </span>
+                  </Button>
                 </div>
               </div>
             )}
@@ -668,9 +638,7 @@ export default function Dashboard() {
                   </CardTitle>
                   <CardDescription>
                     {isAdmin
-                      ? `${barang.length} item${
-                          barang.length !== 1 ? "s" : ""
-                        } ditemukan`
+                      ? `${barang.length} item${barang.length !== 1 ? "s" : ""} ditemukan`
                       : `${userBarang.length} barang Anda`}
                   </CardDescription>
                 </div>
@@ -764,7 +732,6 @@ export default function Dashboard() {
         ) : (
           // KONTEN UNTUK USER YANG BELUM LOGIN (PUBLIC VIEW)
           <>
-            {/* Hero Section untuk guest */}
             <div className="text-center py-12">
               <div className="mx-auto max-w-2xl">
                 <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-8">
@@ -777,7 +744,6 @@ export default function Dashboard() {
                   Titipkan barang Anda dengan aman dan terpercaya. Sistem kami
                   memastikan setiap barang terjamin keamanannya.
                 </p>
-
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
                     size="lg"
@@ -799,7 +765,6 @@ export default function Dashboard() {
 
             {/* Features Section */}
             <div className="flex flex-wrap justify-center gap-6 mb-12">
-              {/* Slot Kosong - Card 1 */}
               <Card className="border shadow-sm hover:shadow-md transition-shadow duration-300 w-full max-w-md">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
@@ -848,18 +813,18 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              {/* Slot Perawatan - Card 2 */}
               <Card className="border shadow-sm hover:shadow-md transition-shadow duration-300 w-full max-w-md">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center">
                       <XCircle className="h-7 w-7 text-white" />
                     </div>
+                    {/* ← tampilkan jumlah slot bermasalah yang real */}
                     <Badge
                       variant="outline"
                       className="border-amber-500 text-amber-700 dark:text-amber-400 font-semibold text-sm px-3 py-1.5"
                     >
-                      0
+                      {rusakSlots.length + maintenanceSlots.length}
                     </Badge>
                   </div>
                   <CardTitle className="text-xl font-bold mb-2">
@@ -878,7 +843,21 @@ export default function Dashboard() {
                         variant="outline"
                         className="border-emerald-500 text-emerald-700 dark:text-emerald-400 font-semibold text-sm px-3 py-1.5"
                       >
-                        {totalSlots}
+                        {totalSlots -
+                          rusakSlots.length -
+                          maintenanceSlots.length}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-2 flex-1">
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <span className="text-sm">Rusak</span>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="border-red-300 text-red-700 dark:text-red-400"
+                      >
+                        {rusakSlots.length}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
@@ -890,7 +869,7 @@ export default function Dashboard() {
                         variant="outline"
                         className="border-amber-300 text-amber-700 dark:text-amber-400"
                       >
-                        0
+                        {maintenanceSlots.length}
                       </Badge>
                     </div>
                   </div>
