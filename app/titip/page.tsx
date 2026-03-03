@@ -329,7 +329,7 @@ export default function TitipPage() {
                           Terisi
                         </span>
                       </div>
-                      {/* ← BARU: legend rusak dan maintenance */}
+                      {/* legend rusak dan maintenance */}
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 sm:w-6 sm:h-6 bg-red-500 border-2 border-red-600 rounded-lg shadow-sm" />
                         <span className="text-xs sm:text-sm font-medium text-gray-700">
@@ -344,7 +344,7 @@ export default function TitipPage() {
                       </div>
                     </div>
 
-                    {/* ← BARU: Banner peringatan jika ada slot bermasalah */}
+                    {/* Banner peringatan jika ada slot bermasalah */}
                     {(rusakSlots.length > 0 || maintenanceSlots.length > 0) && (
                       <Alert className="mb-4 border-amber-300 bg-amber-50">
                         <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -551,7 +551,7 @@ export default function TitipPage() {
 
                     {/* Statistik rusak & maintenance */}
                     {(rusakSlots.length > 0 || maintenanceSlots.length > 0) && (
-                      <div className="grid grid-cols-2 gap-2 sm:gap-4 text-center">
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-3 sm:gap-x-4 sm:gap-y-3 text-center mt-3">
                         <Card className="border-2 border-red-300 bg-gradient-to-b from-red-50 to-white shadow-sm">
                           <CardContent className="pt-4 px-2 sm:px-6 pb-4">
                             <p className="text-lg sm:text-2xl font-bold text-red-600">
