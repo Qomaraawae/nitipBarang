@@ -5,7 +5,6 @@ import { useHistoriBarang } from "@/hooks/useHistoriBarang";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import {
   Package,
@@ -41,22 +40,28 @@ import { Label } from "@/components/ui/label";
 
 export default function HistoriPage() {
   const { user, role } = useAuth();
-  const { histori, loading } = useHistoriBarang();
 
+  // State untuk filter jenis
+  const [jenisFilter, setJenisFilter] = useState<"titip" | "ambil" | "semua">(
+    "semua",
+  );
+
+  // Panggil hook - Admin: undefined (semua data), User: user.uid (data sendiri)
+  const { histori, loading, error } = useHistoriBarang(
+    role === "admin" ? undefined : user?.uid,
+    jenisFilter,
+  );
+
+  // State untuk filter client-side
   const [filteredHistori, setFilteredHistori] = useState<any[]>([]);
   const [filterJenis, setFilterJenis] = useState<string>("semua");
   const [filterStatus, setFilterStatus] = useState<string>("semua");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("terbaru");
 
-  // Apply filters
+  // Apply filters client-side
   useEffect(() => {
     let result = [...histori];
-
-    // Filter by jenis
-    if (filterJenis !== "semua") {
-      result = result.filter((item) => item.jenis === filterJenis);
-    }
 
     // Filter by status
     if (filterStatus !== "semua") {
@@ -91,15 +96,19 @@ export default function HistoriPage() {
     }
 
     setFilteredHistori(result);
-  }, [histori, filterJenis, filterStatus, searchQuery, sortBy]);
+  }, [histori, filterStatus, searchQuery, sortBy]);
+
+  // Handler untuk filter jenis (sync dengan hook)
+  const handleJenisFilterChange = (value: string) => {
+    setFilterJenis(value);
+    setJenisFilter(value as "titip" | "ambil" | "semua");
+  };
 
   const handleRefresh = () => {
-    // Force re-fetch by changing key or using refetch if available
     window.location.reload();
   };
 
   const handleExport = () => {
-    // Simple export to CSV
     const csvContent =
       "data:text/csv;charset=utf-8," +
       "Tanggal,Jenis,Status,Nama Barang,Nama Pemilik,Kode Ambil,Slot,Catatan\n" +
@@ -140,28 +149,6 @@ export default function HistoriPage() {
     }
   };
 
-  const getJenisColor = (jenis: string) => {
-    switch (jenis) {
-      case "titip":
-        return "bg-gradient-to-br from-blue-500 to-indigo-600";
-      case "ambil":
-        return "bg-gradient-to-br from-green-500 to-emerald-600";
-      default:
-        return "bg-gradient-to-br from-gray-500 to-gray-600";
-    }
-  };
-
-  const getJenisLabel = (jenis: string) => {
-    switch (jenis) {
-      case "titip":
-        return "Penitipan";
-      case "ambil":
-        return "Pengambilan";
-      default:
-        return jenis;
-    }
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "berhasil":
@@ -173,13 +160,46 @@ export default function HistoriPage() {
     }
   };
 
+  // Tampilkan error jika ada
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
+          <div className="container mx-auto px-4 lg:px-6">
+            <div className="flex items-center justify-between h-16">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Dashboard
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </header>
+        <div className="container mx-auto px-4 lg:px-6 py-8">
+          <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
+            <CardContent className="p-8 text-center">
+              <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-bold mb-2">Error Memuat Data</h2>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Coba Lagi
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="flex items-center justify-between h-16">
-            {/* Left: Logo & Back Button */}
+            {/* Left: Back Button */}
             <div className="flex items-center gap-3">
               <Link href="/">
                 <Button variant="ghost" size="sm" className="gap-2">
@@ -187,6 +207,30 @@ export default function HistoriPage() {
                   Dashboard
                 </Button>
               </Link>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                className="gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExport}
+                className="gap-2"
+                disabled={filteredHistori.length === 0}
+              >
+                <Download className="h-4 w-4" />
+                Export CSV
+              </Button>
+              <ModeToggle />
             </div>
           </div>
         </div>
@@ -198,18 +242,18 @@ export default function HistoriPage() {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Histori</h1>
+              <h1 className="text-3xl font-bold mb-2">Histori Transaksi</h1>
               <p className="text-muted-foreground">
                 {role === "admin"
-                  ? "Semua Histori Aktivitas"
-                  : "Histori transaksi barang Anda"}
+                  ? "Semua histori aktivitas penitipan dan pengambilan barang"
+                  : "Histori transaksi penitipan dan pengambilan barang Anda"}
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="gap-1">
                 <Package className="h-3 w-3" />
-                {histori.length} transaksi
+                {histori.length} total transaksi
               </Badge>
               {filteredHistori.length !== histori.length && (
                 <Badge variant="secondary" className="gap-1">
@@ -232,7 +276,7 @@ export default function HistoriPage() {
                   <div className="relative">
                     <Input
                       id="search"
-                      placeholder="Cari berdasarkan nama, kode, atau catatan..."
+                      placeholder="Cari berdasarkan nama barang, pemilik, kode, atau catatan..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -246,9 +290,12 @@ export default function HistoriPage() {
                 {/* Jenis Filter */}
                 <div>
                   <Label htmlFor="filter-jenis" className="mb-2 block">
-                    Jenis
+                    Jenis Transaksi
                   </Label>
-                  <Select value={filterJenis} onValueChange={setFilterJenis}>
+                  <Select
+                    value={filterJenis}
+                    onValueChange={handleJenisFilterChange}
+                  >
                     <SelectTrigger
                       id="filter-jenis"
                       className="w-full md:w-[180px]"
@@ -301,6 +348,27 @@ export default function HistoriPage() {
                   </Select>
                 </div>
               </div>
+
+              {/* Reset Filter Button */}
+              {(searchQuery ||
+                filterJenis !== "semua" ||
+                filterStatus !== "semua") && (
+                <div className="mt-4 flex justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterJenis("semua");
+                      setFilterStatus("semua");
+                      setSortBy("terbaru");
+                      setJenisFilter("semua");
+                    }}
+                  >
+                    Reset Filter
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -332,7 +400,7 @@ export default function HistoriPage() {
                 filterJenis !== "semua" ||
                 filterStatus !== "semua"
                   ? "Tidak ada hasil yang cocok"
-                  : "Belum ada transaksi"}
+                  : "Belum ada riwayat transaksi"}
               </h3>
               <p className="text-muted-foreground mb-6">
                 {searchQuery ||
@@ -340,8 +408,8 @@ export default function HistoriPage() {
                 filterStatus !== "semua"
                   ? "Coba ubah filter atau kata kunci pencarian"
                   : role === "admin"
-                    ? "Belum ada transaksi di sistem"
-                    : "Anda belum melakukan transaksi penitipan atau pengambilan"}
+                    ? "Belum ada transaksi penitipan atau pengambilan di sistem"
+                    : "Anda belum melakukan transaksi penitipan atau pengambilan barang"}
               </p>
               {(searchQuery ||
                 filterJenis !== "semua" ||
@@ -352,6 +420,8 @@ export default function HistoriPage() {
                     setSearchQuery("");
                     setFilterJenis("semua");
                     setFilterStatus("semua");
+                    setSortBy("terbaru");
+                    setJenisFilter("semua");
                   }}
                 >
                   Reset Filter
@@ -371,26 +441,58 @@ export default function HistoriPage() {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        {/* ICON HANYA UNTUK "AMBIL" - GREEN */}
-                        <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-green-500 to-emerald-600">
-                          <PackageCheck className="h-6 w-6 text-white" />
+                        {/* Icon berdasarkan jenis transaksi */}
+                        <div
+                          className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                            item.jenis === "titip"
+                              ? "bg-gradient-to-br from-blue-500 to-indigo-600"
+                              : "bg-gradient-to-br from-green-500 to-emerald-600"
+                          }`}
+                        >
+                          {item.jenis === "titip" ? (
+                            <Package className="h-6 w-6 text-white" />
+                          ) : (
+                            <PackageCheck className="h-6 w-6 text-white" />
+                          )}
                         </div>
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h3 className="font-bold text-lg">
                               {item.namaBarang}
                             </h3>
-                            {/* BADGE HANYA "SUDAH DIAMBIL" */}
+                            {/* Badge Jenis Transaksi */}
                             <Badge
                               variant="outline"
-                              className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300"
+                              className={
+                                item.jenis === "titip"
+                                  ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300"
+                                  : "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300"
+                              }
                             >
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                              <span className="ml-1">Sudah Diambil</span>
+                              {item.jenis === "titip" ? (
+                                <>
+                                  <Package className="h-3 w-3 mr-1" />
+                                  Dititipkan
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  Diambil
+                                </>
+                              )}
+                            </Badge>
+                            {/* Badge Status */}
+                            <Badge className={getStatusColor(item.status)}>
+                              {getStatusIcon(item.status)}
+                              <span className="ml-1">
+                                {item.status === "berhasil"
+                                  ? "Berhasil"
+                                  : "Gagal"}
+                              </span>
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Barang sudah diambil • Kode: {item.kodeAmbil}
+                            Kode Transaksi: {item.kodeAmbil}
                             {role === "admin" && item.userId && (
                               <span className="ml-2 text-xs bg-muted px-2 py-0.5 rounded">
                                 User ID: {item.userId.substring(0, 8)}...
@@ -426,7 +528,7 @@ export default function HistoriPage() {
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">
-                            Kode Ambil
+                            Kode Transaksi
                           </p>
                           <p className="font-mono font-bold text-sm">
                             {item.kodeAmbil}
@@ -452,7 +554,9 @@ export default function HistoriPage() {
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">
-                            Tanggal Pengambilan
+                            {item.jenis === "titip"
+                              ? "Tanggal Titip"
+                              : "Tanggal Ambil"}
                           </p>
                           <p className="font-medium text-sm">
                             {item.tanggal
@@ -485,9 +589,7 @@ export default function HistoriPage() {
                       <div className="mt-4 p-3 bg-muted/30 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                           <Info className="h-3 w-3 text-muted-foreground" />
-                          <p className="text-sm font-medium">
-                            Catatan Pengambilan:
-                          </p>
+                          <p className="text-sm font-medium">Catatan:</p>
                         </div>
                         <p className="text-sm text-muted-foreground pl-5">
                           {item.catatan}
@@ -547,31 +649,39 @@ export default function HistoriPage() {
                 {role === "admin" && (
                   <div className="mt-6 pt-6 border-t">
                     <h4 className="text-sm font-medium mb-3">
-                      Distribusi User
+                      Top 5 User dengan Transaksi Terbanyak
                     </h4>
                     <div className="space-y-2">
                       {(() => {
                         const userCounts: Record<string, number> = {};
                         filteredHistori.forEach((item) => {
-                          userCounts[item.userId] =
-                            (userCounts[item.userId] || 0) + 1;
+                          if (item.userId) {
+                            userCounts[item.userId] =
+                              (userCounts[item.userId] || 0) + 1;
+                          }
                         });
 
                         const sortedUsers = Object.entries(userCounts)
                           .sort(([, a], [, b]) => b - a)
                           .slice(0, 5);
 
-                        return sortedUsers.map(([userId, count]) => (
-                          <div
-                            key={userId}
-                            className="flex items-center justify-between"
-                          >
-                            <span className="text-sm text-muted-foreground truncate max-w-[200px]">
-                              {userId.substring(0, 16)}...
-                            </span>
-                            <Badge variant="outline">{count} transaksi</Badge>
-                          </div>
-                        ));
+                        return sortedUsers.length > 0 ? (
+                          sortedUsers.map(([userId, count]) => (
+                            <div
+                              key={userId}
+                              className="flex items-center justify-between"
+                            >
+                              <span className="text-sm text-muted-foreground truncate max-w-[200px]">
+                                {userId.substring(0, 16)}...
+                              </span>
+                              <Badge variant="outline">{count} transaksi</Badge>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-muted-foreground text-center">
+                            Belum ada data transaksi
+                          </p>
+                        );
                       })()}
                     </div>
                   </div>

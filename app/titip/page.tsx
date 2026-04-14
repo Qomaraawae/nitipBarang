@@ -57,7 +57,6 @@ interface SuccessData {
   kode: string;
 }
 
-// ← Status slot diperluas dengan "rusak" dan "maintenance"
 type SlotStatus =
   | "selected"
   | "occupied"

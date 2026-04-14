@@ -1,6 +1,8 @@
+// hooks/useHistoriBarang.ts
 import { useState, useEffect } from "react";
-import { historiCollection } from "@/lib/firebase/firestore";
+import { db } from "@/lib/firebase/firebaseConfig";
 import {
+  collection,
   query,
   where,
   orderBy,
@@ -22,56 +24,55 @@ export interface HistoriItem {
   catatan?: string;
 }
 
-export function useHistoriBarang(userId?: string) {
+export function useHistoriBarang(
+  userId?: string,
+  jenisFilter?: "titip" | "ambil" | "semua",
+) {
   const [histori, setHistori] = useState<HistoriItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (userId === undefined) {
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
+    setError(null);
 
-    let q;
+    const constraints: any[] = [];
+    const historiCollection = collection(db, "histori");
 
+    // HANYA filter userId jika ada (untuk user biasa)
+    // Jika userId undefined (admin), ambil SEMUA data
     if (userId) {
-      // Query HANYA histori dengan jenis "ambil" untuk user tertentu
-      q = query(
-        historiCollection,
-        where("userId", "==", userId),
-        where("jenis", "==", "ambil"),
-        orderBy("tanggal", "desc"),
-      );
-    } else {
-      // Untuk admin: query semua histori TAPI hanya jenis "ambil"
-      q = query(
-        historiCollection,
-        where("jenis", "==", "ambil"),
-        orderBy("tanggal", "desc"),
-      );
+      constraints.push(where("userId", "==", userId));
     }
+
+    // Filter jenis
+    if (jenisFilter && jenisFilter !== "semua") {
+      constraints.push(where("jenis", "==", jenisFilter));
+    }
+
+    constraints.push(orderBy("tanggal", "desc"));
+
+    const q = query(historiCollection, ...constraints);
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const data = snapshot.docs.map(
-          (doc) =>
-            ({
-              id: doc.id,
-              ...doc.data(),
-            }) as HistoriItem,
-        );
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as HistoriItem[];
         setHistori(data);
         setLoading(false);
       },
       (error) => {
-        console.error("Error fetching histori:", error);
+        console.error("Error:", error);
+        setError(error.message);
         setLoading(false);
       },
     );
 
-    return unsubscribe;
-  }, [userId]);
+    return () => unsubscribe();
+  }, [userId, jenisFilter]);
 
-  return { histori, loading };
+  return { histori, loading, error };
 }
