@@ -19,7 +19,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { UserPlus, Mail, Lock, AlertCircle } from "lucide-react";
-import { logger } from "@/lib/logger";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -33,13 +32,23 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    if (password !== confirmPassword) {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+    const cleanConfirmPassword = confirmPassword.trim();
+
+    if (!cleanEmail || !cleanPassword) {
+      setError("Email dan password wajib diisi!");
+      toast.error("Email dan password wajib diisi!");
+      return;
+    }
+
+    if (cleanPassword !== cleanConfirmPassword) {
       setError("Password tidak cocok!");
       toast.error("Password tidak cocok!");
       return;
     }
 
-    if (password.length < 6) {
+    if (cleanPassword.length < 6) {
       setError("Password minimal 6 karakter!");
       toast.error("Password minimal 6 karakter!");
       return;
@@ -47,33 +56,28 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      // Selalu register sebagai user
-      const userData = await register(email, password, "user");
+      await register(cleanEmail, cleanPassword, "user");
 
       toast.success("Akun berhasil dibuat!", {
         description: "Silakan login dengan akun Anda",
       });
 
-      // Redirect after short delay
       setTimeout(() => {
         router.replace("/login");
       }, 1500);
     } catch (err: any) {
-      // GLOGGER
-      logger.error("Register failed", {
-        errorCode: err.code,
-        errorMessage: err.message,
-        email: email,
-      });
+      console.error("Register error:", err);
 
       let errorMessage = "Registrasi gagal. Coba lagi.";
 
       if (err.code === "auth/email-already-in-use") {
-        errorMessage = "Email sudah terdaftar!";
+        errorMessage = "Email sudah terdaftar! Silakan login.";
       } else if (err.code === "auth/weak-password") {
-        errorMessage = "Password terlalu lemah!";
+        errorMessage = "Password terlalu lemah! Gunakan minimal 6 karakter.";
       } else if (err.code === "permission-denied") {
-        errorMessage = "Gagal menyimpan data. Periksa Firebase Security Rules.";
+        errorMessage = "Gagal menyimpan data. Periksa koneksi Anda.";
+      } else if (err.message) {
+        errorMessage = err.message;
       }
 
       setError(errorMessage);
@@ -86,7 +90,6 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-4">
-        {/* Header with Mode Toggle */}
         <div className="flex justify-end">
           <ModeToggle />
         </div>
@@ -94,7 +97,7 @@ export default function RegisterPage() {
         <Card className="border shadow-lg">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-linear-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
                 <UserPlus className="h-8 w-8 text-white" />
               </div>
             </div>
@@ -119,16 +122,14 @@ export default function RegisterPage() {
                   <Mail className="h-4 w-4" />
                   Email
                 </Label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="user@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="user@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="space-y-2">

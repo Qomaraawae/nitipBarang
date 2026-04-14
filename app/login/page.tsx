@@ -18,8 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { LogIn, Mail, Lock, AlertCircle, Shield } from "lucide-react";
-import { logger } from "@/lib/logger";
+import { LogIn, Mail, Lock, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -31,82 +30,55 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Validasi client-side
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !cleanPassword) {
+      setError("Email dan password wajib diisi!");
+      toast.error("Email dan password wajib diisi!");
+      return;
+    }
+
+    if (cleanPassword.length < 6) {
+      setError("Password minimal 6 karakter!");
+      toast.error("Password minimal 6 karakter!");
+      return;
+    }
+
     setLoading(true);
 
-    console.clear();
-    console.log("🧪 === LOGIN PROCESS STARTED ===");
-    console.log("📧 Email entered:", email);
-
     try {
-      // Login dan dapatkan user data dengan role
-      console.log("🔄 Calling login function...");
-      const userData = await login(email, password);
-
-      console.log("✅ Login function returned:", {
-        uid: userData.uid.substring(0, 8) + "...",
-        email: userData.email,
-        role: userData.role,
-      });
-
-      // Gunakan logger.auth yang aman
-      logger.auth.login(userData.email || "", userData.role);
+      const userData = await login(cleanEmail, cleanPassword);
 
       toast.success("Login berhasil!", {
         description: `Selamat datang ${userData.email}`,
       });
 
-      console.log("🎉 Login successful, redirecting to dashboard");
-
-      // Redirect ke dashboard
       router.push("/");
     } catch (err: any) {
-      console.error("❌ Login error details:");
-      console.error("Error code:", err.code);
-      console.error("Error message:", err.message);
-      console.error("Full error:", err);
+      console.error("Login error:", err);
 
-      // GANTI console.error DENGAN LOGGER
-      logger.error("Login failed", {
-        errorCode: err.code,
-        errorMessage: err.message,
-        email: email,
-      });
+      let errorMessage = "Login gagal. Silakan coba lagi.";
 
-      // Handle specific error codes
-      if (err.code === "auth/user-not-found") {
-        console.log("📋 Diagnosis: User tidak ditemukan di Firebase Auth");
-        setError("Email tidak terdaftar!");
-        toast.error("Email tidak terdaftar!");
+      if (err.message && err.message.includes("Email atau password salah")) {
+        errorMessage = err.message;
+      } else if (err.code === "auth/user-not-found") {
+        errorMessage = "Email tidak terdaftar. Silakan daftar terlebih dahulu.";
       } else if (err.code === "auth/wrong-password") {
-        console.log("📋 Diagnosis: Password salah");
-        setError("Password salah!");
-        toast.error("Password salah!");
-      } else if (err.code === "auth/invalid-credential") {
-        console.log("📋 Diagnosis: Kredensial tidak valid");
-        setError("Email atau password salah!");
-        toast.error("Email atau password salah!");
+        errorMessage = "Password salah. Silakan coba lagi.";
       } else if (err.code === "auth/invalid-email") {
-        console.log("📋 Diagnosis: Format email salah");
-        setError("Format email tidak valid!");
-        toast.error("Format email tidak valid!");
+        errorMessage = "Format email tidak valid.";
       } else if (err.code === "auth/too-many-requests") {
-        console.log("📋 Diagnosis: Terlalu banyak percobaan login");
-        setError("Terlalu banyak percobaan login. Coba lagi nanti.");
-        toast.error("Terlalu banyak percobaan login");
-      } else if (err.code === "auth/network-request-failed") {
-        console.log("📋 Diagnosis: Masalah jaringan");
-        setError("Gagal terhubung. Periksa koneksi internet Anda.");
-        toast.error("Gagal terhubung ke server");
-      } else if (err.message === "User data not found in database") {
-        console.log("📋 Diagnosis: User document tidak ditemukan di Firestore");
-        setError("Data user tidak ditemukan. Silakan hubungi admin.");
-        toast.error("Data user tidak ditemukan");
-      } else {
-        console.log("📋 Diagnosis: Error tidak dikenal");
-        setError(`Login gagal: ${err.message}`);
-        toast.error("Login gagal");
+        errorMessage = "Terlalu banyak percobaan. Coba lagi nanti.";
+      } else if (err.message) {
+        errorMessage = err.message;
       }
 
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
       setLoading(false);
     }
   };
@@ -114,7 +86,6 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-4">
-        {/* Header with Mode Toggle */}
         <div className="flex justify-end">
           <ModeToggle />
         </div>
@@ -122,7 +93,7 @@ export default function LoginPage() {
         <Card className="border shadow-lg">
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-linear-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
                 <LogIn className="h-8 w-8 text-white" />
               </div>
             </div>
@@ -140,9 +111,6 @@ export default function LoginPage() {
                 <AlertDescription className="font-medium">
                   {error}
                 </AlertDescription>
-                <p className="text-xs mt-2">
-                  Buka browser console (F12) untuk detail error
-                </p>
               </Alert>
             )}
 
@@ -152,18 +120,16 @@ export default function LoginPage() {
                   <Mail className="h-4 w-4" />
                   Email
                 </Label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="contoh@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    className="h-12 text-base"
-                  />
-                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="contoh@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  className="h-12 text-base"
+                />
               </div>
 
               <div className="space-y-2">
@@ -222,28 +188,12 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col space-y-2">
             <div className="text-xs text-center text-muted-foreground space-y-1">
               <p>Gunakan email dan password yang sudah terdaftar</p>
-              <p>Untuk testing: buka console browser (F12) untuk debug</p>
             </div>
             <p className="text-xs text-center text-muted-foreground">
               © 2024 Penitipan Barang. All rights reserved.
             </p>
           </CardFooter>
         </Card>
-
-        {/* Debug Info (only in development) */}
-        {process.env.NODE_ENV === "development" && (
-          <Alert className="bg-blue-50 border-blue-200">
-            <AlertDescription className="text-sm text-blue-800">
-              <div className="font-medium mb-1">Debug Mode:</div>
-              <ol className="list-decimal pl-4 space-y-1 text-xs">
-                <li>Buka Console (F12)</li>
-                <li>Lihat log untuk detail error</li>
-                <li>Cek error code & message</li>
-                <li>Share error details jika perlu bantuan</li>
-              </ol>
-            </AlertDescription>
-          </Alert>
-        )}
       </div>
     </div>
   );
