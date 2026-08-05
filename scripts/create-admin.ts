@@ -109,7 +109,7 @@ async function createAdminUser(email: string, password: string) {
 
     console.log("✅ Data saved to Firestore");
 
-    // Verify data was saved
+    // Verify data saved correctly
     console.log("🔄 Verifying data...");
     const userDoc = await getDoc(doc(db, "users", user.uid));
 
@@ -123,7 +123,7 @@ async function createAdminUser(email: string, password: string) {
     console.log("\n✅ Admin user created successfully!");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("📧 Email:", email);
-    console.log("🆔 UID:", maskUid(user.uid)); // GUNAKAN maskUid
+    console.log("🆔 UID:", maskUid(user.uid));
     console.log("👑 Role: admin");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("\n🔐 SIMPAN CREDENTIALS INI DI TEMPAT AMAN!");
