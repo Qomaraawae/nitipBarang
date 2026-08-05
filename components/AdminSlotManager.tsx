@@ -146,7 +146,7 @@ export default function AdminSlotManager() {
     <>
       {/* ===== MAIN CARD ===== */}
       <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm">
-        <CardHeader className="bg-gradient-to-r from-red-600 to-orange-600 rounded-t-xl px-5 py-4">
+        <CardHeader className="bg-linear-to-r from-red-600 to-orange-600 rounded-t-xl px-5 py-4">
           <CardTitle className="flex items-center gap-2 text-white text-base">
             <Wrench className="h-5 w-5" />
             Manajemen Kondisi Slot (Admin)
@@ -247,7 +247,7 @@ export default function AdminSlotManager() {
                           </span>
                           {getStatusBadge(cond)}
                           {cond?.reason && (
-                            <span className="text-gray-500 dark:text-gray-400 text-xs truncate max-w-[120px] sm:max-w-[200px]">
+                            <span className="text-gray-500 dark:text-gray-400 text-xs truncate max-w-30 sm:max-w-50">
                               {cond.reason}
                             </span>
                           )}
@@ -277,10 +277,10 @@ export default function AdminSlotManager() {
           <div
             className={`px-5 py-4 ${
               newStatus === "rusak"
-                ? "bg-gradient-to-r from-red-500 to-rose-600"
+                ? "bg-linear-to-rrom-red-500 to-rose-600"
                 : newStatus === "maintenance"
-                  ? "bg-gradient-to-r from-amber-400 to-orange-500"
-                  : "bg-gradient-to-r from-emerald-500 to-teal-600"
+                  ? "bg-linear-to-r from-amber-400 to-orange-500"
+                  : "bg-linear-to-r from-emerald-500 to-teal-600"
             }`}
           >
             <DialogHeader>
