@@ -149,7 +149,7 @@ export default function AdminSlotManager() {
         <CardHeader className="bg-linear-to-r from-red-600 to-orange-600 rounded-t-xl px-5 py-4">
           <CardTitle className="flex items-center gap-2 text-white text-base">
             <Wrench className="h-5 w-5" />
-            Manajemen Kondisi Slot (Admin)
+            Manajemen Kondisi Slot
           </CardTitle>
         </CardHeader>
 

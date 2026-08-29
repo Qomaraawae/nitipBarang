@@ -28,18 +28,26 @@ import {
   ChevronRight,
   CheckCircle2,
   XCircle,
+  LogIn,
 } from "lucide-react";
 import { logger, maskEmail, maskUid } from "@/lib/logger";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-export default function Dashboard() {
+export default function UserDashboard() {
   const { user, role, loading: authLoading } = useAuth();
   const { barang, loading: dataLoading } = useBarangRealTime();
-  const [activeTab, setActiveTab] = useState("dashboard");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const router = useRouter();
 
-  // LOG USER LOGIN SECURELY
+  // Redirect jika tidak login
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
   useEffect(() => {
     if (user && !authLoading) {
       logger.auth.login(user.email || "", role || "user");
@@ -61,6 +69,7 @@ export default function Dashboard() {
   const handleLogout = async () => {
     try {
       await logout();
+      router.push("/");
     } catch (error) {
       logger.error("Logout error:", error);
     }
@@ -87,22 +96,29 @@ export default function Dashboard() {
   }
 
   const isAdmin = role === "admin";
-  const userBarang = barang.filter((b: Barang) => b.user_id === user.uid);
+  const userBarang = barang.filter((b: Barang) =>
+    user?.uid ? b.user_id === user.uid : false,
+  );
 
   const totalSlots = 50;
   const occupiedSlots = barang.length;
   const availableSlots = totalSlots - occupiedSlots;
-  const slotUsagePercentage = Math.round((occupiedSlots / totalSlots) * 100);
+  const slotUsagePercentage = Math.min(
+    Math.round((occupiedSlots / totalSlots) * 100),
+    100,
+  );
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       {/* ==================== HEADER ==================== */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-sm transition-colors duration-300">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="flex items-center justify-between h-16">
-            {/* Left: Logo & Brand */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Package className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -113,14 +129,11 @@ export default function Dashboard() {
                   Sistem Penitipan
                 </p>
               </div>
-            </div>
+            </Link>
 
-            {/* Right: Actions */}
             <div className="flex items-center gap-3">
               <ModeToggle />
-
-              {/* Profile Dropdown Desktop */}
-              <div className="hidden md:block relative">
+              <div className="relative">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -129,14 +142,13 @@ export default function Dashboard() {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.photoURL || ""} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100">
+                    <AvatarFallback className="bg-linear-to-br from-blue-100 to-indigo-100">
                       <User className="h-4 w-4 text-blue-600" />
                     </AvatarFallback>
                   </Avatar>
                   <ChevronDown className="h-3 w-3" />
                 </Button>
 
-                {/* Dropdown Menu */}
                 {showProfileDropdown && (
                   <>
                     <div
@@ -144,13 +156,12 @@ export default function Dashboard() {
                       onClick={() => setShowProfileDropdown(false)}
                     />
                     <div className="absolute right-0 top-12 w-64 z-50">
-                      {/* Background gradient ringan */}
-                      <div className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl shadow-black/10 dark:shadow-black/20 animate-in slide-in-from-top-2">
+                      <div className="bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl shadow-black/10 dark:shadow-black/20 animate-in slide-in-from-top-2">
                         <div className="p-4 border-b border-gray-100 dark:border-gray-700">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-12 w-12 ring-2 ring-white dark:ring-gray-900 shadow-sm">
                               <AvatarImage src={user.photoURL || ""} />
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                              <AvatarFallback className="bg-linear-to-br from-blue-500 to-indigo-600 text-white">
                                 <User className="h-6 w-6" />
                               </AvatarFallback>
                             </Avatar>
@@ -163,7 +174,7 @@ export default function Dashboard() {
                                   variant={isAdmin ? "default" : "secondary"}
                                   className={`text-xs font-medium ${
                                     isAdmin
-                                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0"
+                                      ? "bg-linear-to-r from-blue-500 to-indigo-600 text-white border-0"
                                       : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-0"
                                   }`}
                                 >
@@ -193,163 +204,140 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-
-          {/* Mobile Navigation - Hanya untuk admin */}
-          {isAdmin && null}
         </div>
       </header>
 
       {/* ==================== MAIN CONTENT ==================== */}
       <div className="container mx-auto px-4 lg:px-6 py-6">
         {/* Welcome Section */}
-        {!isAdmin && (
-          <Card className="mb-6 border shadow-sm">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2 text-foreground">
-                    Hai {getUserName()}, selamat datang! 👋
-                  </h2>
-                  <p className="text-muted-foreground">
-                    Anda bisa menitipkan barang dengan menekan tombol "Titip
-                    Barang" di bawah ini.
-                  </p>
-                </div>
-                <Link href="/titip">
-                  <Button size="lg" className="gap-2">
-                    <Plus className="h-5 w-5" />
-                    Titip Barang
-                  </Button>
-                </Link>
+        <Card className="mb-6 border shadow-sm">
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold mb-2 text-foreground">
+                  Hai {getUserName()}, selamat datang! 👋
+                </h2>
+                <p className="text-muted-foreground">
+                  {isAdmin
+                    ? "Kelola semua penitipan barang di sistem ini."
+                    : "Anda bisa menitipkan barang dengan menekan tombol 'Titip Barang' di bawah ini."}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {isAdmin ? (
-            <>
-              <Card className="border">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-foreground">
-                    Total Barang
-                  </CardTitle>
-                  <div className="p-2 bg-muted rounded-lg">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
-                    {dataLoading ? "..." : barang.length}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Barang terdaftar
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-foreground">
-                    Slot Terisi
-                  </CardTitle>
-                  <div className="p-2 bg-muted rounded-lg">
-                    <PackageCheck className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
-                    {occupiedSlots}
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    <Progress value={slotUsagePercentage} className="h-2" />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Kapasitas</span>
-                      <span>{slotUsagePercentage}%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-foreground">
-                    Slot Kosong
-                  </CardTitle>
-                  <div className="p-2 bg-muted rounded-lg">
-                    <Home className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
-                    {availableSlots}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Dari {totalSlots} slot total
-                  </p>
-                  {availableSlots <= 10 && (
-                    <Badge variant="outline" className="mt-2">
-                      ⚠️ Kapasitas hampir penuh
-                    </Badge>
-                  )}
-                </CardContent>
-              </Card>
-            </>
-          ) : null}
-        </div>
-
-        {/* Action Buttons for Admin */}
-        {isAdmin && (
-          <div className="mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Link href="/titip">
-                <Button
-                  variant="outline"
-                  className="w-full h-auto py-6 flex-col gap-3"
-                >
-                  <div className="p-3 bg-muted rounded-full">
-                    <Plus className="h-8 w-8" />
-                  </div>
-                  <span className="font-bold text-lg">Titip Barang</span>
-                  <span className="text-sm text-muted-foreground">
-                    Tambah barang baru
-                  </span>
-                </Button>
-              </Link>
-
-              <Link href="/ambil">
-                <Button
-                  variant="outline"
-                  className="w-full h-auto py-6 flex-col gap-3"
-                >
-                  <div className="p-3 bg-muted rounded-full">
-                    <Search className="h-8 w-8" />
-                  </div>
-                  <span className="font-bold text-lg">Ambil Barang</span>
-                  <span className="text-sm text-muted-foreground">
-                    Proses pengambilan
-                  </span>
-                </Button>
-              </Link>
-
-              <Link href="/histori">
-                <Button
-                  variant="outline"
-                  className="w-full h-auto py-6 flex-col gap-3"
-                >
-                  <div className="p-3 bg-muted rounded-full">
-                    <History className="h-8 w-8" />
-                  </div>
-                  <span className="font-bold text-lg">Histori</span>
-                  <span className="text-sm text-muted-foreground">
-                    Riwayat aktivitas
-                  </span>
+                <Button size="lg" className="gap-2">
+                  <Plus className="h-5 w-5" />
+                  Titip Barang
                 </Button>
               </Link>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Stats Grid untuk admin */}
+        {isAdmin && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card className="border">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-foreground">
+                  Total Barang
+                </CardTitle>
+                <div className="p-2 bg-muted rounded-lg">
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">
+                  {dataLoading ? "..." : barang.length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Barang terdaftar
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-foreground">
+                  Slot Terisi
+                </CardTitle>
+                <div className="p-2 bg-muted rounded-lg">
+                  <PackageCheck className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">
+                  {occupiedSlots}
+                </div>
+                <div className="mt-3 space-y-2">
+                  <Progress value={slotUsagePercentage} className="h-2" />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Kapasitas</span>
+                    <span>{slotUsagePercentage}%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-foreground">
+                  Slot Kosong
+                </CardTitle>
+                <div className="p-2 bg-muted rounded-lg">
+                  <Home className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">
+                  {availableSlots}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Dari {totalSlots} slot total
+                </p>
+                {availableSlots <= 10 && (
+                  <Badge variant="outline" className="mt-2">
+                    ⚠️ Kapasitas hampir penuh
+                  </Badge>
+                )}
+              </CardContent>
+            </Card>
           </div>
         )}
+
+        {/* Action Buttons untuk User */}
+        <div className="mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Link href="/titip">
+              <Button
+                variant="outline"
+                className="w-full h-auto py-6 flex-col gap-3"
+              >
+                <div className="p-3 bg-muted rounded-full">
+                  <Plus className="h-8 w-8" />
+                </div>
+                <span className="font-bold text-lg">Titip Barang</span>
+                <span className="text-sm text-muted-foreground">
+                  Tambah barang baru
+                </span>
+              </Button>
+            </Link>
+
+            <Link href="/histori">
+              <Button
+                variant="outline"
+                className="w-full h-auto py-6 flex-col gap-3"
+              >
+                <div className="p-3 bg-muted rounded-full">
+                  <History className="h-8 w-8" />
+                </div>
+                <span className="font-bold text-lg">Histori</span>
+                <span className="text-sm text-muted-foreground">
+                  Riwayat aktivitas
+                </span>
+              </Button>
+            </Link>
+          </div>
+        </div>
 
         {/* Barang List */}
         <Card className="border">
@@ -360,9 +348,7 @@ export default function Dashboard() {
               </CardTitle>
               <CardDescription>
                 {isAdmin
-                  ? `${barang.length} item${
-                      barang.length !== 1 ? "s" : ""
-                    } ditemukan`
+                  ? `${barang.length} item${barang.length !== 1 ? "s" : ""} ditemukan`
                   : `${userBarang.length} barang Anda`}
               </CardDescription>
             </div>
@@ -371,6 +357,26 @@ export default function Dashboard() {
             {dataLoading ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (isAdmin ? barang : userBarang).length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  {isAdmin ? "Belum ada barang dititipkan" : "Belum ada barang"}
+                </h3>
+                <p className="text-muted-foreground">
+                  {isAdmin
+                    ? "Tunggu hingga ada pengguna yang menitipkan barang."
+                    : "Mulai titipkan barang Anda sekarang!"}
+                </p>
+                {!isAdmin && (
+                  <Link href="/titip">
+                    <Button className="mt-4 gap-2">
+                      <Plus className="h-4 w-4" />
+                      Titip Barang
+                    </Button>
+                  </Link>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
@@ -384,7 +390,7 @@ export default function Dashboard() {
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-4 flex-1 min-w-0">
-                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                            <div className="w-14 h-14 bg-linear-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shrink-0">
                               {b.slot}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -414,7 +420,7 @@ export default function Dashboard() {
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                          <div className="flex items-center gap-2 ml-4 shrink-0">
                             <Badge
                               variant={
                                 b.status === "dititipkan"

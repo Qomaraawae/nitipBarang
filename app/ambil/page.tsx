@@ -336,7 +336,7 @@ export default function AmbilPage() {
           <div>
             {barang ? (
               <Card>
-                <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
+                <CardHeader className="bg-linear-to-r from-primary/10 to-primary/5">
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <PackageCheck className="h-5 w-5" />
@@ -351,7 +351,7 @@ export default function AmbilPage() {
                 <CardContent className="pt-6">
                   <div className="space-y-6">
                     {/* Kode Ambil */}
-                    <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-6">
+                    <div className="bg-linear-to-r from-primary/5 to-primary/10 rounded-lg p-6">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                         <div className="flex items-center gap-3">
                           <div className="rounded-lg bg-primary p-3">
@@ -482,7 +482,7 @@ export default function AmbilPage() {
           {/* Header */}
           <DialogHeader className="mb-4">
             <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0" />
               <div>
                 <DialogTitle className="text-lg text-gray-900 dark:text-gray-100">
                   Konfirmasi Pengambilan
@@ -570,7 +570,7 @@ export default function AmbilPage() {
               {/* Warning Message */}
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
                   <p className="text-sm text-yellow-800 dark:text-yellow-300">
                     Pastikan barang sesuai sebelum konfirmasi
                   </p>

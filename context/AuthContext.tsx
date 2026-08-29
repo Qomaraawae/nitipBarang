@@ -18,8 +18,6 @@ interface AuthContextType {
   userData: UserData | null;
   role: UserRole | null;
   loading: boolean;
-  showLoginModal: boolean;
-  setShowLoginModal: (show: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -27,8 +25,6 @@ const AuthContext = createContext<AuthContextType>({
   userData: null,
   role: null,
   loading: true,
-  showLoginModal: false,
-  setShowLoginModal: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -36,29 +32,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialCheckDone, setInitialCheckDone] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const ensureUserDocument = async (currentUser: User) => {
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
       const userDoc = await getDoc(userDocRef);
-      
+
       if (!userDoc.exists()) {
         logger.log("Creating new user document");
-        
+
         const defaultRole: UserRole = "user";
-        
+
         const newUserData: UserData = {
           email: currentUser.email || "",
           role: defaultRole,
           createdAt: new Date(),
         };
-        
+
         await setDoc(userDocRef, {
           ...newUserData,
           createdAt: serverTimestamp(),
         });
-        
+
         logger.log("User document created");
         return newUserData;
       } else {
@@ -74,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const userDocRef = doc(db, "users", uid);
       const userDoc = await getDoc(userDocRef);
-      
+
       if (userDoc.exists()) {
         const data = userDoc.data() as UserData;
         setUserData(data);
@@ -93,14 +88,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      
+
       if (currentUser) {
         await ensureUserDocument(currentUser);
         await fetchUserData(currentUser.uid);
       } else {
         setUserData(null);
       }
-      
+
       setLoading(false);
       setInitialCheckDone(true);
     });
@@ -120,14 +115,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        userData, 
-        role: userData?.role || null, 
+    <AuthContext.Provider
+      value={{
+        user,
+        userData,
+        role: userData?.role || null,
         loading,
-        showLoginModal,
-        setShowLoginModal
       }}
     >
       {children}

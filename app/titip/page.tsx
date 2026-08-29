@@ -233,7 +233,7 @@ export default function TitipPage() {
 
     switch (status) {
       case "selected":
-        return `${base} bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105 border-blue-500`;
+        return `${base} bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105 border-blue-500`;
       case "rusak":
         return `${base} bg-red-500 border-red-600 text-white cursor-not-allowed`;
       case "maintenance":
@@ -283,7 +283,7 @@ export default function TitipPage() {
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-14 h-14 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Package className="h-7 w-7 text-white" />
                 </div>
                 <div>
@@ -301,7 +301,7 @@ export default function TitipPage() {
               {/* Left Side - Slot Selection */}
               <div>
                 <Card>
-                  <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                  <CardHeader className="bg-linear-to-r from-blue-500 to-indigo-600 text-white">
                     <CardTitle>Pilih Slot</CardTitle>
                     <CardDescription className="text-blue-100">
                       Klik slot yang tersedia untuk memilih
@@ -317,7 +317,7 @@ export default function TitipPage() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm" />
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-linear-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm" />
                         <span className="text-xs sm:text-sm font-medium text-gray-700">
                           Dipilih
                         </span>
@@ -376,8 +376,8 @@ export default function TitipPage() {
 
                     {/* Selected Slot Info */}
                     {slot && (
-                      <Alert className="mb-4 sm:mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-                        <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                      <Alert className="mb-4 sm:mb-6 bg-linear-to-r from-blue-50 to-indigo-50 border-blue-200">
+                        <CheckCircle className="h-4 w-4 text-blue-600 shrink-0" />
                         <AlertDescription className="text-blue-700 text-sm sm:text-base">
                           Slot terpilih:{" "}
                           <strong className="text-xl sm:text-2xl ml-2 text-blue-800">
@@ -492,7 +492,7 @@ export default function TitipPage() {
                                           disabled={disabled}
                                           className={`
                                           w-10 h-10 rounded-lg font-medium transition-all duration-200
-                                          flex items-center justify-center text-xs border-2 flex-shrink-0
+                                          flex items-center justify-center text-xs border-2 shrink-0
                                           ${
                                             isSlotRusak(slotNumber)
                                               ? "bg-red-500 border-red-600 text-white cursor-not-allowed"
@@ -501,7 +501,7 @@ export default function TitipPage() {
                                                 : isSlotOccupied(slotNumber)
                                                   ? "bg-gray-400 border-gray-500 text-gray-700 cursor-not-allowed"
                                                   : slot === slotNumber
-                                                    ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105 border-blue-500"
+                                                    ? "bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg scale-105 border-blue-500"
                                                     : "bg-white border-green-400 text-gray-800 hover:border-green-500 hover:bg-green-50"
                                           }
                                         `}
@@ -526,7 +526,7 @@ export default function TitipPage() {
                     {/* Slot Summary */}
                     <Separator className="my-4 sm:my-6" />
                     <div className="grid grid-cols-2 gap-2 sm:gap-4 text-center">
-                      <Card className="border-2 border-green-300 bg-gradient-to-b from-green-50 to-white shadow-sm">
+                      <Card className="border-2 border-green-300 bg-linear-to-b from-green-50 to-white shadow-sm">
                         <CardContent className="pt-4 sm:pt-6 px-2 sm:px-6">
                           <p className="text-lg sm:text-2xl font-bold text-green-700">
                             {availableCount}
@@ -536,7 +536,7 @@ export default function TitipPage() {
                           </p>
                         </CardContent>
                       </Card>
-                      <Card className="border-2 border-gray-400 bg-gradient-to-b from-gray-100 to-white shadow-sm">
+                      <Card className="border-2 border-gray-400 bg-linear-to-b from-gray-100 to-white shadow-sm">
                         <CardContent className="pt-4 sm:pt-6 px-2 sm:px-6">
                           <p className="text-lg sm:text-2xl font-bold text-gray-800">
                             {occupiedSlots.length}
@@ -551,7 +551,7 @@ export default function TitipPage() {
                     {/* Statistik rusak & maintenance */}
                     {(rusakSlots.length > 0 || maintenanceSlots.length > 0) && (
                       <div className="grid grid-cols-2 gap-x-2 gap-y-3 sm:gap-x-4 sm:gap-y-3 text-center mt-3">
-                        <Card className="border-2 border-red-300 bg-gradient-to-b from-red-50 to-white shadow-sm">
+                        <Card className="border-2 border-red-300 bg-linear-to-b from-red-50 to-white shadow-sm">
                           <CardContent className="pt-4 px-2 sm:px-6 pb-4">
                             <p className="text-lg sm:text-2xl font-bold text-red-600">
                               {rusakSlots.length}
@@ -561,7 +561,7 @@ export default function TitipPage() {
                             </p>
                           </CardContent>
                         </Card>
-                        <Card className="border-2 border-amber-300 bg-gradient-to-b from-amber-50 to-white shadow-sm">
+                        <Card className="border-2 border-amber-300 bg-linear-to-b from-amber-50 to-white shadow-sm">
                           <CardContent className="pt-4 px-2 sm:px-6 pb-4">
                             <p className="text-lg sm:text-2xl font-bold text-amber-600">
                               {maintenanceSlots.length}
@@ -580,7 +580,7 @@ export default function TitipPage() {
               {/* Right Side - Form */}
               <div>
                 <Card>
-                  <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                  <CardHeader className="bg-linear-to-r from-blue-500 to-indigo-600 text-white">
                     <CardTitle>Informasi Barang</CardTitle>
                     <CardDescription className="text-blue-100">
                       Pastikan data yang diisi sudah benar

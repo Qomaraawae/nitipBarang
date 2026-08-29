@@ -5,7 +5,6 @@ import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-// font loading
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -44,19 +43,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning className="theme-transition">
       <head>
-        {/* Metadata untuk PWA */}
         <meta name="theme-color" content="#3b82f6" />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=5"
         />
-        {/* Preconnect untuk Cloudinary */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`
+          ${geistSans.variable} ${geistMono.variable} 
+          antialiased bg-background text-foreground 
+          theme-transition
+        `}
+        suppressHydrationWarning
       >
         <a
           href="#main-content"
@@ -69,16 +71,15 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          disableTransitionOnChange
+          disableTransitionOnChange={false}
         >
           <AuthProvider>
-            <main id="main-content" className="min-h-screen">
+            <main id="main-content" className="min-h-screen theme-transition">
               {children}
             </main>
           </AuthProvider>
         </ThemeProvider>
 
-        {/* Toaster */}
         <Toaster
           position="bottom-right"
           toastOptions={{

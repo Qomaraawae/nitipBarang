@@ -216,7 +216,7 @@ export default function DetailBarang({ params }: PageProps) {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-14 h-14 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Package className="h-7 w-7 text-white" />
               </div>
               <div>
@@ -402,7 +402,7 @@ export default function DetailBarang({ params }: PageProps) {
             {/* WhatsApp Button (Admin only) */}
             {isAdmin && isActive && (
               <Button
-                className="w-full gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                className="w-full gap-2 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                 onClick={() => {
                   let phone = barang.no_hp.replace(/\D/g, "");
                   if (phone.startsWith("0")) phone = "62" + phone.substring(1);

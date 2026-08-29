@@ -46,7 +46,7 @@ import AdminSlotManager from "@/components/AdminSlotManager";
 import { useSlotConditions } from "@/hooks/useSlotConditions";
 import { useRouter } from "next/navigation";
 
-export default function Dashboard() {
+export default function DashboardPage() {
   const { user, role, loading: authLoading } = useAuth();
   const { barang, loading: dataLoading } = useBarangRealTime();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -132,11 +132,10 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Admin Slot Manager Dialog */}
       <Dialog open={showSlotManager} onOpenChange={setShowSlotManager}>
         <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-          {/* Background dengan efek blur */}
           <div className="absolute inset-0 overflow-hidden rounded-lg">
             <div
               className="absolute inset-0 bg-linear-to-br from-blue-600"
@@ -146,11 +145,9 @@ export default function Dashboard() {
                 opacity: 0.6,
               }}
             />
-            {/* Overlay gelap untuk kontras */}
             <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/70 backdrop-blur-sm" />
           </div>
 
-          {/* Konten di atas background blur */}
           <div className="relative z-10">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-lg font-bold">
@@ -169,7 +166,7 @@ export default function Dashboard() {
       </Dialog>
 
       {/* ==================== HEADER ==================== */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-sm transition-colors duration-300">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-sm">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="flex items-center justify-between h-16">
             <Link
@@ -267,7 +264,7 @@ export default function Dashboard() {
 
       {/* ==================== MAIN CONTENT ==================== */}
       <div className="container mx-auto px-4 lg:px-6 py-6">
-        {/* Welcome Section untuk semua user */}
+        {/* Welcome Section */}
         <Card className="mb-6 border shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
