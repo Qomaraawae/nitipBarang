@@ -53,12 +53,7 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <ModeToggle />
               {user ? (
-                <Link href="/dashboard">
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <User className="h-4 w-4" />
-                    Dashboard
-                  </Button>
-                </Link>
+                <Link href="/dashboard"></Link>
               ) : (
                 <Link href="/login"></Link>
               )}

@@ -23,12 +23,10 @@ import {
   LogOut,
   Home,
   Plus,
-  Search,
   History,
   ChevronRight,
   CheckCircle2,
   XCircle,
-  LogIn,
 } from "lucide-react";
 import { logger, maskEmail, maskUid } from "@/lib/logger";
 import { useEffect, useState } from "react";
